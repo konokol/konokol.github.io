@@ -8,7 +8,9 @@ subtitle:
 description: Love every moment of life, no matter it's good or not.
 keywords:
 author: Ivan J. Lee
-language: en
+language: 
+  - zh-CN
+  - en
 timezone:
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -64,6 +66,7 @@ tag_map:
 ## http://momentjs.com/docs/#/displaying/format/
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
+updated_option: 'git'
 
 # Pagination
 ## Set per_page to 0 to disable pagination
