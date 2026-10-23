@@ -1,182 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>使用ConstraintLayout构建响应式布局</title>
-    <url>/2019/01/24/ConstraintLayout/</url>
-    <content><![CDATA[<h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1 简介"></a>1 简介</h2><blockquote>
-<p>使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。</p>
-<p>ContraintLayout的API和Android Studio的布局编辑器的图形化工具是相辅相成的，通过布局编辑器的图形化工具，可以直接使用ConstraintLayout的全部特性。在使用ConstraintLayout时，可以直接拖拽进行布局，完全不用编辑xml。</p>
-<p>ConstraintLayout支持Android 2.3(API 9)以上，本文是在Android Studio 3.0及以上版本中使用ConstraintLayout的教程，如果想要了解Android Studio中更多关于布局编辑器的内容，可以参考官网<a href="https://developer.android.com/studio/write/layout-editor.html">Build a UI with Layout Editor</a>。</p>
-<p>如果想要看ConstraintLayout的Demo，可以去GitHub上围观：<a href="https://github.com/googlesamples/android-ConstraintLayoutExamples">https://github.com/googlesamples/android-ConstraintLayoutExamples</a>。</p>
-</blockquote>
-<h2 id="2-约束预览"><a href="#2-约束预览" class="headerlink" title="2 约束预览"></a>2 约束预览</h2><blockquote>
-<p>要确定一个View在ConstraintLayout中的位置，至少需要指定一个水平或者垂直的约束。每一个约束都代表了一个View和其它的View，其父View或者不可见的基准线之间的联系或者对齐关系。每一个约束都定义了View相对于横轴和纵轴的位置，因此，确定一个View的位置必须至少相对于横轴和纵轴各指定一个约束，通常来说，我们需要指定的约束会有多个。</p>
-<p>在Android Studio中，当把一个View拖到布局编辑器中的时候，这个View一般会显示在你拖动的位置，但是这仅仅是为了便于我们编辑，如果一个View一个约束也没有，那它会显示在坐标[0, 0]的位置，即左上角。</p>
-</blockquote>
-<p>比如下面的两种情况：</p>
-<center>
-![图1 A和C没有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf0fiigij20cw068dfr.jpg)</br>
-图1 A和C没有约束
-</center>
-
-<center>
-![图2 A和C有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf10sjdgj20cw068dfu.jpg)</br>
-图2 A和C有约束
-</center>
-
-<p>图1中，A和C没有约束关系，尽管在预览时会看到C在A的下方，实际运行时，C会浮到屏幕的最顶端。图2中，加上了A和C的约束(红圈所示)之后，C就会位于A的下方。</p>
-<h2 id="3-配置ConstraintLayout"><a href="#3-配置ConstraintLayout" class="headerlink" title="3 配置ConstraintLayout"></a>3 配置ConstraintLayout</h2><ol>
-<li>maven仓库的配置</li>
-</ol>
-<p> 在最新版本的gradle中，Google迁移了maven仓库，所以需要在项目根目录的build.gradle中添加：</p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">   maven &#123;</span><br><span class="line">       url &#x27;https://maven.google.com&#x27;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p> 或者是</p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">       jcenter()</span><br><span class="line">       google()</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>添加gradle最新版本的依赖，目前稳定版本是1.0.2，1.1.0还是beta版。</li>
-</ol>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    compile &#x27;com.android.support.constraint:constraint-layout:1.0.2&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol start="3">
-<li>同步gradle</li>
-</ol>
-<h2 id="4-在项目中使用ConstraintLayout"><a href="#4-在项目中使用ConstraintLayout" class="headerlink" title="4 在项目中使用ConstraintLayout"></a>4 在项目中使用ConstraintLayout</h2><p>在Android Studio 3.0+中，可以把旧的布局转换成ConstraintLayout，也可以在新建Constraint<br>Layout。如果没做特别的配置，使用Android Studio的Activity模版新建Activity时，布局文件根布局会默认是ConstraintLayout。</p>
-<p>将普通布局文件转换成ConstraintLayout：<br>切到Design面板-&gt;打开Component Tree-&gt;右键选中一个Layout，选择Convert XXXLayout to ConstraintLayout；</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqks0e1w4j20n20i5q38.jpg)</br>
-图3 将普通布局转换成Constraint
-Layout</center>
-
-<h2 id="5-实战练习"><a href="#5-实战练习" class="headerlink" title="5 实战练习"></a>5 实战练习</h2><h3 id="5-1-添加相对于父布局的位置约束"><a href="#5-1-添加相对于父布局的位置约束" class="headerlink" title="5.1 添加相对于父布局的位置约束"></a>5.1 添加相对于父布局的位置约束</h3><p>新建一个布局文件，根布局选择为ConstraintLayout，切换到Design面板</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqluzldu4j21ue19sn4v.jpg)</br>
-图4 新建一个的ConstraintLayout
-</center>
-
-<p>拖动一个控件到面板中，此时没有任何约束，会看到控件上报了一个错误，提示没有约束，如果直接运行，这个TextView会显示到屏幕的左上角</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqlxou6m8j21u817ewm2.jpg)
-图5 未添加约束时的警告
-</center>
-
-<p>添加相对于父布局的约束，在一个方向上可以添加一个或者两个约束</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqm9npfx3g20pk0g4172.gif)</br>
-图6 添加左侧的约束
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmn6pigmg20pk0g4atu.gif)</br>
-图7 添加右侧的约束
-</center>
-
-<h3 id="5-2-添加相对于兄弟View的位置约束"><a href="#5-2-添加相对于兄弟View的位置约束" class="headerlink" title="5.2 添加相对于兄弟View的位置约束"></a>5.2 添加相对于兄弟View的位置约束</h3><p>添加相对于其它View的约束，下图中B、C只添加了对A的约束，运行起来后，B贴在屏幕顶部且在A的右边，C贴在屏幕的左侧且位于A的下方。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmvdktk7j215q0yctb7.jpg)
-</br>
-图7 相对于其它View的约束
-
-<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqswt7oohj20ko1240yx.jpg"><br>图8 运行的实际效果</p>
-</center>
-
-<h3 id="5-3-添加对齐方式"><a href="#5-3-添加对齐方式" class="headerlink" title="5.3 添加对齐方式"></a>5.3 添加对齐方式</h3><p>在两个View的同一个方向(水平或垂直)上，把两个View的两条边连接起来即可添加对其约束。添加对其约束之后，laytou_marginXXX等属性仍然会生效。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnp0oot8j215o0y6mzp.jpg)
-</br>
-图9 C与A的左侧对其，B与A的顶部对其且向下偏移16dp
-</center>
-
-<h3 id="5-4-删除约束"><a href="#5-4-删除约束" class="headerlink" title="5.4 删除约束"></a>5.4 删除约束</h3><p>删除约束很简单，选中一个View，鼠标hover在View的一个约束上时，约束会变红，点按即可删除。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnhkw90vj215q0yedir.jpg)
-</br>
-图10 删除一个约束
-</center>
-
-<h3 id="5-5-相对于guideline的约束"><a href="#5-5-相对于guideline的约束" class="headerlink" title="5.5 相对于guideline的约束"></a>5.5 相对于guideline的约束</h3><p>除了相对于父布局和兄弟View，ConstraintLayout中还可以在水平方向和垂直方向上添加guide，ConstraintLayout内的View可以添加相对于guideline的约束。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqojv5ddcj20r4072my3.jpg)
-</br>
-图11 添加guideline
-</center>
-
-<p>添加的guideline在xml布局中表现和View一样。guideline可以像View一样添加约束。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqoogvy5jj20rg09ctax.jpg)
-</br>
-图12 guideline在xml中的表示
-</center>
-
-<p>添加完guideline之后，选中guideline，在布局的边缘可以看到一个小三角或者百分号，点击可以切换guideline相对于布局编辑的位置，显示为小三角的方向表示guideline距布局边界的绝对位置（单位是dp），百分号则表示相对位置</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqr0whwlmj21ts1acqbo.jpg)
-</br>
-图13 guideline在屏幕垂直方向上20%的位置，A位于guideline的下方
-</center>
-
-<h3 id="5-6-添加相对于View的barrie"><a href="#5-6-添加相对于View的barrie" class="headerlink" title="5.6 添加相对于View的barrie"></a>5.6 添加相对于View的barrie</h3><p>barrier是ConstraintLayout 1.1中新加的特性，barrier和guideline类似，从字面意思可以理解，它相当于一个屏障，包含在其中的View不能越过它的位置。举个例子，图14的布局中，B位于A的右侧，当C位于A的下方，当C的文字比较少时，B会在C的右侧，当C的文字比较多时，C就会被B盖住，但是B左侧的约束又只能有一个。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
-</br>
-图13 C的文字比较少
-
-<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtars5vij21aa124n0c.jpg"><br></br><br>图13 C的文字比较多时，B盖住了C</p>
-</center>
-
-
-<p>此时就可以添加一个barrier，在B的左侧添加一个到barrier的约束，使B的位置随着A、C的内容左右移动而不用担心B的内容盖住A。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
-</br>
-图13 C的文字比较少
-
-<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtjpiz20j21ae124adv.jpg"><br></br><br>图14 B添加了相对于barrier的约束</p>
-</center>
-
-<p>添加barrier的方法：</p>
-<blockquote>
+    <title>进程与线程</title>
+    <url>/2020/08/03/000-cs-processes-and-threads/</url>
+    <content><![CDATA[<h2 id="进程和线程概览"><a href="#进程和线程概览" class="headerlink" title="进程和线程概览"></a>进程和线程概览</h2><p>当应用组件启动且该应用未运行任何其他组件时，Android 系统会使用单个执行线程为应用启动新的 Linux 进程。默认情况下，同一应用的所有组件会在相同的进程和线程（称为“主”线程）中运行。如果某个应用组件启动且该应用已存在进程（因为存在该应用的其他组件），则该组件会在此进程内启动并使用相同的执行线程。但是，您可以安排应用中的其他组件在单独的进程中运行，并为任何进程创建额外的线程。</p>
+<p>本文档介绍进程和线程在 Android 应用中的工作方式。</p>
+<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><p>默认情况下，同一应用的所有组件均在相同的进程中运行，且大多数应用都不应改变这一点。但是，如果您发现需要控制某个组件所属的进程，则可在清单文件中执行此操作。</p>
+<p>各类组件元素（<activity>、<service>、<receiver> 和 <provider>）的清单文件条目均支持 android:process 属性，此属性可指定该组件应在哪个进程中运行。您可以设置此属性，使每个组件均在各自的进程中运行，或者使某些组件共享一个进程，而其他组件则不共享。您也可设置 android:process，以便不同应用的组件在同一进程中运行，但前提是这些应用共享相同的 Linux 用户 ID 并使用相同的证书进行签署。</p>
+<p>此外，<application> 元素还支持 android:process 属性，用来设置适用于所有组件的默认值。</p>
+<p>当内存不足，而其他更急于为用户提供服务的进程又需要内存时，Android 可能会决定在某一时刻关闭某个进程。正因如此，系统会销毁在被终止进程中运行的应用组件。当这些组件需再次运行时，系统将为其重启进程。</p>
+<p>决定终止哪个进程时，Android 系统会权衡其对用户的相对重要性。例如，相较于托管可见 Activity 的进程而言，系统更有可能关闭托管屏幕上不再可见的 Activity 的进程。因此，是否终止某个进程的决定取决于该进程中所运行组件的状态。</p>
+<p>如需详细了解进程生命周期及其与应用状态的关系，请参阅进程和应用生命周期。</p>
+<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><p>启动应用时，系统会为该应用创建一个称为“main”（主线程）的执行线程。此线程非常重要，因为其负责将事件分派给相应的界面微件，其中包括绘图事件。此外，应用与 Android 界面工具包组件（来自 android.widget 和 android.view 软件包的组件）也几乎都在该线程中进行交互。因此，主线程有时也称为界面线程。但在一些特殊情况下，应用的主线程可能并非其界面线程，相关详情请参阅线程注解。</p>
+<p>系统不会为每个组件实例创建单独的线程。在同一进程中运行的所有组件均在界面线程中进行实例化，并且对每个组件的系统调用均由该线程进行分派。因此，响应系统回调的方法（例如，报告用户操作的 onKeyDown() 或生命周期回调方法）始终在进程的界面线程中运行。</p>
+<p>例如，当用户轻触屏幕上的按钮时，应用的界面线程会将轻触事件分派给微件，而微件转而会设置其按下状态，并将失效请求发布到事件队列中。界面线程从队列中取消该请求，并通知该微件对其自身进行重绘。</p>
+<p>当应用执行繁重的任务以响应用户交互时，除非您正确实现应用，否则这种单线程模式可能会导致性能低下。具体地讲，如果界面线程需要处理所有任务，则执行耗时较长的操作（例如，网络访问或数据库查询）将会阻塞整个界面线程。一旦被阻塞，线程将无法分派任何事件，包括绘图事件。从用户的角度来看，应用会显示为挂起状态。更糟糕的是，如果界面线程被阻塞超过几秒钟时间（目前大约是 5 秒钟），用户便会看到令人厌烦的“应用无响应”(ANR) 对话框。如果引起用户不满，他们可能就会决定退出并卸载此应用。</p>
+<p>此外，Android 界面工具包并非线程安全工具包。所以您不得通过工作线程操纵界面，而只能通过界面线程操纵界面。因此，Android 的单线程模式必须遵守两条规则：</p>
 <ol>
-<li>Click Guidelines <img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtmbpbvij200w00w047.jpg">in the toolbar, and then click Add Vertical Barrier or Add Horizontal Barrier.</li>
-<li>In the Component Tree window, select the views you want inside the barrier and drag them into the barrier component.</li>
-<li>Select the barrier from the Component Tree, open the Attributes window, and then set the barrierDirection.</li>
+<li>不要阻塞 UI 线程</li>
+<li>不要在 UI 线程之外访问 Android UI 工具包</li>
 </ol>
-</blockquote>
-<ol>
-<li>点击工具栏添加guideline的位置，添加垂直或者水平的barrier；</li>
-<li>在Component Tree视图中，把想要限制的View拖进barrier中；</li>
-<li>在Component Tree中选中barrier，打开右侧的属性窗口，设置barrierDirection属性。</li>
-</ol>
-<h3 id="5-7-调节约束的位置"><a href="#5-7-调节约束的位置" class="headerlink" title="5.7 调节约束的位置"></a>5.7 调节约束的位置</h3><p>在前面，给View水平方向上添加2个约束时，会发现View自动水平居中了。此时，可以调节ConstraintLayout的bias，使其在屏幕一定比例的位置上，而不是居中。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnk39ur1g21g80p0x6r.gif)
-</br>
-图15 调节约束的位置
-</center>
+<h3 id="工作线程"><a href="#工作线程" class="headerlink" title="工作线程"></a>工作线程</h3><p>根据上述单线程模式，如要保证应用界面的响应能力，关键是不能阻塞界面线程。如果执行的操作不能即时完成，则应确保它们在单独的线程（“后台”或“工作”线程）中运行。</p>
+<p>但请注意，除了界面线程或“主”线程，您无法更新任何其他线程的界面。</p>
+<p>为解决此问题，Android 提供了几种途径，以便您从其他线程访问界面线程。以下列出了几种有用的方法：</p>
+<ul>
+<li>Activity.runOnUiThread(Runnable)</li>
+<li>View.post(Runnable)</li>
+<li>View.postDelayed(Runnable, long)</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="comment">// a potentially time consuming task</span></span><br><span class="line">            <span class="keyword">final</span> <span class="type">Bitmap</span> <span class="variable">bitmap</span> <span class="operator">=</span></span><br><span class="line">                    processBitMap(<span class="string">&quot;image.png&quot;</span>);</span><br><span class="line">            imageView.post(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">                <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                    imageView.setImageBitmap(bitmap);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="5-8-调节View的大小"><a href="#5-8-调节View的大小" class="headerlink" title="5.8 调节View的大小"></a>5.8 调节View的大小</h3><p>ConstraintLayout的子View中，除了可以通过正常的layout_width和layout_height来限制View的宽高为，在Design面板的右侧，可以很方便调整View的大小。</p>
-<center>
-![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnm43y7lj20fr0j9jte.jpg)
-</br>
-图16 调节View的大小
-</center>
-图中的编号中，
-
-<ol>
-<li>调节View的宽高比</li>
-<li>删除某个方向上的约束</li>
-<li>View的宽高模式，Fixed（宽高写死），Wrap Content，Match Constraints（和match parent一样）</li>
-<li>View的margin值</li>
-<li>bias</li>
-</ol>
-<h3 id="5-9-链式线性分组"><a href="#5-9-链式线性分组" class="headerlink" title="5.9 链式线性分组"></a>5.9 链式线性分组</h3><p>在一个链式线性分组内的View会在一个方向上形成一个双向约束，互相约束。</p>
+<p>上述实现属于线程安全型：在单独的线程中完成后台操作，同时始终在界面线程中操纵 ImageView。</p>
+<p>但是，随着操作日趋复杂，这类代码也会变得复杂且难以维护。如要通过工作线程处理更复杂的交互，可以考虑在工作线程中使用 Handler 处理来自界面线程的消息。当然，最好的解决方案或许是扩展 AsyncTask 类，此类可简化与界面进行交互所需执行的工作线程任务。</p>
+<h4 id="使用-AsyncTask"><a href="#使用-AsyncTask" class="headerlink" title="使用 AsyncTask"></a>使用 AsyncTask</h4><p>AsyncTask 允许对界面执行异步操作。它会先阻塞工作线程中的操作，然后在界面线程中发布结果，而无需您亲自处理线程和&#x2F;或处理程序。</p>
+<p>如要使用该类，您必须创建 AsyncTask 的子类并实现 doInBackground() 回调方法，该方法会在后台线程池中运行。如要更新界面，您应实现 onPostExecute()（该方法会传递 doInBackground() 返回的结果并在界面线程中运行），以便安全更新界面。然后，您可以通过从界面线程调用 execute() 来运行任务。</p>
+<p>如要全面了解如何使用此类，请阅读 AsyncTask 参考文档。</p>
+<h3 id="线程安全方法"><a href="#线程安全方法" class="headerlink" title="线程安全方法"></a>线程安全方法</h3><p>在某些情况下，系统可能会从多个线程调用您实现的方法，因此编写这些方法时必须确保其满足线程安全的要求。</p>
+<p>这一点主要适用于可以远程调用的方法，如绑定服务中的方法。如果对 IBinder 中所实现方法的调用源自运行 IBinder 的同一进程，则系统会在调用方的线程中执行该方法。但是，如果调用源自其他进程，则系统会选择线程池中的某个线程，并在此线程中（而不是在进程的界面线程中）执行该方法，线程池由系统在与 IBinder 相同的进程中进行维护。例如，即使服务的 onBind() 方法通过服务进程的界面线程调用，在 onBind() 所返回对象中实现的方法（例如，实现 RPC 方法的子类）仍会通过线程池中的线程调用。由于服务可以有多个客户端，因此多个池线程可同时使用相同的 IBinder 方法。因此，IBinder 方法必须实现为线程安全方法。</p>
+<p>同样，内容提供程序也可接收来自其他进程的数据请求。尽管 ContentResolver 和 ContentProvider 类隐藏了如何管理进程间通信的细节，但系统会从内容提供程序进程的线程池（而非进程的界面线程）调用响应这些请求的 ContentProvider 方法（query()、insert()、delete()、update() 和 getType() 方法）。由于系统可能会同时从任意数量的线程调用这些方法，因此它们也必须实现为线程安全的方法。</p>
+<h2 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h2><p>Android 利用远程过程调用 (RPC) 提供了一种进程间通信 (IPC) 机制，在此机制中，系统会（在其他进程中）远程执行由 Activity 或其他应用组件调用的方法，并将所有结果返回给调用方。因此，您需将方法调用及其数据分解至操作系统可识别的程度，并将其从本地进程和地址空间传输至远程进程和地址空间，然后在远程进程中重新组装并执行该调用。然后，返回值将沿相反方向传输回来。Android 提供执行这些 IPC 事务所需的全部代码，因此您只需集中精力定义和实现 RPC 编程接口。</p>
+<p>如要执行 IPC，您必须使用 bindService() 将应用绑定到服务。如需了解详细信息，请参阅Service开发者指南。</p>
 ]]></content>
-      <categories>
-        <category>tech</category>
-      </categories>
       <tags>
         <tag>Android</tag>
       </tags>
   </entry>
   <entry>
+    <title>Java 8函数式数据处理</title>
+    <url>/2017/12/27/001-java-8-stream/</url>
+    <content><![CDATA[<h1 id="1-流"><a href="#1-流" class="headerlink" title="1 流"></a>1 流</h1><h2 id="1-1-流是什么"><a href="#1-1-流是什么" class="headerlink" title="1.1 流是什么"></a>1.1 流是什么</h2><p><strong>流</strong>是Java 8中新引入的概念，它允许你以声明式方式处理数据集合（通过查询语句来表达，而不是临时编写一个实现）。</p>
+<p>举个例子，筛选出价格大于¥50的菜品，并对这些菜品进行排序，最后返回菜品名称的集合，在Java 8之前：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//第一步，筛选</span></span><br><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">tempList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(dishes.size());</span><br><span class="line"><span class="keyword">for</span> (Dish dish : dishes) &#123;</span><br><span class="line">	<span class="keyword">if</span> (dish.getPriceCent() &gt; <span class="number">5000</span>) &#123;</span><br><span class="line">		tempList.add(dish);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//第二步，排序</span></span><br><span class="line">Collections.sort(tempList, <span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt;() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPriceCent() - d2.getPriceCent();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//第三步，返回名称集合</span></span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(tempList.size())</span><br><span class="line"><span class="keyword">for</span> (Dish dish : tempList) &#123;</span><br><span class="line">	result.add(dish.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Java 8中，引入了流的概念之后，结合Lambda表达式：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">							.filter(dish -&gt; dish.getPriceCent() &gt; <span class="number">5000</span>)</span><br><span class="line">							.sorted(comparing(Dish::getPriceCent))</span><br><span class="line">							.map(Dish::getName)</span><br><span class="line">							.collect(toList());</span><br></pre></td></tr></table></figure>
+
+<p>流式方法的好处：</p>
+<ul>
+<li>代码是以声明性方式写的，说明想要完成什么，而不是如何实现一个操作；</li>
+<li>把几个基本操作链接起来，用以表达复杂的数据操作流水线，使代码清晰可读。</li>
+</ul>
+<p>使用Java 8的Stream API可以写出这样的代码：</p>
+<ul>
+<li>声明性——更简洁 ，更易读</li>
+<li>可复合——更灵活</li>
+<li>可并行——性能更好</li>
+</ul>
+<h2 id="1-2-流简介"><a href="#1-2-流简介" class="headerlink" title="1.2 流简介"></a>1.2 流简介</h2><h3 id="1-2-1-概念和术语"><a href="#1-2-1-概念和术语" class="headerlink" title="1.2.1 概念和术语"></a>1.2.1 概念和术语</h3><p>Java 8中的集合支持一个新的stream方法，它会返回一个流，当然也有很多其他方法，比如利用数值范围或者I&#x2F;O资源也可以生成流元素。</p>
+<p>定义：<strong>从支持数据处理操作的源生成得元素序列。</strong></p>
+<p>关键概念：</p>
+<p>|术语 			|说明	|<br>|—-			|—-		|<br>|元素序列		|类似集合，流提供一个接口，可以访问特定元素类型的一组有序值。集合讲的是数据，流讲的是计算。|<br>|源				|流会使用一个提供数据的源，比如集合、数组或者是I&#x2F;O. 从有序集合生成流时会保留原有的序列。|<br>|数据处理操作	|流的数据处理功能类似于数据库的操作，以及函数式编程语言中的常用操作，如filter、map、reduce、find、match、sort等。流操作可以顺序执行，也可以并行执行。|<br>|流水线			|很多的流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个流水线。|<br>|内部迭代		|和使用迭代器进行显示迭代的集合不同，流的迭代操作是在背后进行的。|</p>
+<h3 id="1-2-2-外部迭代与内部迭代"><a href="#1-2-2-外部迭代与内部迭代" class="headerlink" title="1.2.2 外部迭代与内部迭代"></a>1.2.2 外部迭代与内部迭代</h3><p>使用Collection接口需要用户自己去做迭代，称为<strong>外部迭代</strong>。</p>
+<p>使用Stream进行的迭代是<strong>内部迭代</strong>，Stream已经帮你把迭代做了，你只需要告诉它你需要干什么就可以了。</p>
+<p>外部迭代：<br><img src="/../img/java8-out-iterator.PNG" alt="外部迭代"></p>
+<p>内部迭代：<br><img src="/../img/java8-inner-iterator.PNG"></p>
+<h2 id="1-3-常见的流操作"><a href="#1-3-常见的流操作" class="headerlink" title="1.3 常见的流操作"></a>1.3 常见的流操作</h2><h3 id="1-3-1-collect-toList"><a href="#1-3-1-collect-toList" class="headerlink" title="1.3.1 collect(toList)"></a>1.3.1 collect(toList)</h3><p>collect(toList)方法由Stream里的值生成一个列表。of方法可以生成一个流对象。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-2-map"><a href="#1-3-2-map" class="headerlink" title="1.3.2 map"></a>1.3.2 map</h3><p>map操作可以将一个流中的一种值转换成另一种类型的值，生成一个新的流(一对一映射)。比如，将一个集合中的字符串全部转换成大写。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">upperCaseList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;talk&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cheap&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;show&quot;</span>, <span class="string">&quot;me&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;code&quot;</span>)</span><br><span class="line">                .map(string -&gt; string.toUpperCase())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[TALK,IS,CHEAP,,,SHOW,ME,THE,CODE]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p> <img src="/../img/java8-map.PNG" alt="Java 8 map"></p>
+<p>map操作传入的Lambda表达式必须和Function接口的签名一致。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt; &#123;</span><br><span class="line">    <span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-3-flatMap"><a href="#1-3-3-flatMap" class="headerlink" title="1.3.3 flatMap"></a>1.3.3 flatMap</h3><p>flatMap方法使一个流中的每个值都换成另外一个流，然后把所有的流都连接起来成为一个流（笛卡尔乘积）。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//找出两个数组中共同的元素，形成一个集合</span></span><br><span class="line"></span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array1</span> <span class="operator">=</span> &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>&#125;;</span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array2</span> <span class="operator">=</span> &#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">11</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;Integer[]&gt; <span class="variable">list</span> <span class="operator">=</span> Stream</span><br><span class="line">                .of(array1)</span><br><span class="line">                .flatMap(a1 -&gt; Stream.of(array2).filter(a1::equals).map(a2 -&gt; <span class="keyword">new</span> <span class="title class_">Integer</span>[]&#123;a1, a2&#125;))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">  </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[&lt;2, 2&gt;, &lt;3, 3&gt;, &lt;5, 5&gt;, &lt;7, 7&gt;]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>flatMap操作接收的Lambda表达式必须与Function接口的签名一致，传入的范型为Function&lt;? super T, ? extends Stream&lt;? extends R&gt;&gt;.</p>
+<h3 id="1-3-4-filter"><a href="#1-3-4-filter" class="headerlink" title="1.3.4 filter"></a>1.3.4 filter</h3><p>filter用来遍历数据并选出符合特定条件的元素。比如筛选出一个字符串集合中仅含数字的字符串。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">digitList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a1c&quot;</span>, <span class="string">&quot;123&quot;</span>, <span class="string">&quot;1q2qw&quot;</span>, <span class="string">&quot;0.5&quot;</span>)</span><br><span class="line">                .filter(string -&gt; TextUtils.isDigitsOnly(string))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">                </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[123]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/../img/java8-filter.PNG"></p>
+<p>同样，filter操作传入的Lambda表达式必须和Predicate接口的签名一致。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-5-distinct"><a href="#1-3-5-distinct" class="headerlink" title="1.3.5 distinct"></a>1.3.5 distinct</h3><p>disdint方法会返回一个元素各异的流，简单来说，就是滤重（根据元素的hashCode和equals方法）。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">distinctList</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">                .distinct()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4]</span></span><br><span class="line"><span class="comment">*/</span>	</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-6-limit"><a href="#1-3-6-limit" class="headerlink" title="1.3.6 limit"></a>1.3.6 limit</h3><p>limit(n)会返回一个不超过给定长度的流。如果流是有序的，则最多会返回前n个元素。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .limit(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-7-skip"><a href="#1-3-7-skip" class="headerlink" title="1.3.7 skip"></a>1.3.7 skip</h3><p>skip(n)，会返回扔掉前n个元素的流，如果流中元素不超过n，则会返回一个空的流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .skip(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*	</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[4,5,6,7]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-8-min和max"><a href="#1-3-8-min和max" class="headerlink" title="1.3.8 min和max"></a>1.3.8 min和max</h3><p>求最小值和求最大值。比如求菜品集合中价格最低和最高的菜。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">dishes</span> <span class="operator">=</span> ...</span><br><span class="line"><span class="type">Dish</span> <span class="variable">max</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.max(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br><span class="line">	</span><br><span class="line"><span class="type">Dish</span> <span class="variable">min</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.mix(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-9-reduce"><a href="#1-3-9-reduce" class="headerlink" title="1.3.9 reduce"></a>1.3.9 reduce</h3><p>reduce操作可以从一组值中生成一个值，实际上max和min也是reduce操作，因为太常用，所以被纳入了标准库中。举例，求和：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">	.reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../img/java8-reduce.PNG" alt="reduce"></p>
+<p>reduce对应的操作有3个重载的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//无初始值的</span></span><br><span class="line"><span class="type">Optional</span>&lt;T&gt; <span class="title function_">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">boolean</span> <span class="variable">foundAny</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream) &#123;</span><br><span class="line">	<span class="keyword">if</span> (!foundAny) &#123;</span><br><span class="line">	   foundAny = <span class="literal">true</span>;</span><br><span class="line">    	result = element;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	result = accumulator.apply(result, element);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> foundAny ? Optional.of(result) : Optional.empty();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//带初始值的</span></span><br><span class="line"><span class="type">T</span> <span class="title function_">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//参数带两个BiFuction的</span></span><br><span class="line">&lt;U&gt; <span class="type">U</span> <span class="title function_">reduce</span><span class="params">(U identity,</span></span><br><span class="line"><span class="params">				BiFunction&lt;U, ? <span class="built_in">super</span> T, U&gt; accumulator,</span></span><br><span class="line"><span class="params">             BinaryOperator&lt;U&gt; combiner)</span>;</span><br><span class="line">             </span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">U</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-10-anyMatch、allMatch和noneMatch"><a href="#1-3-10-anyMatch、allMatch和noneMatch" class="headerlink" title="1.3.10 anyMatch、allMatch和noneMatch"></a>1.3.10 anyMatch、allMatch和noneMatch</h3><p>anyMatch判断流中是否至少有一个元素能匹配给定的条件，返回一个boolean值。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="variable">hasNullElements</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Java&quot;</span>, <span class="string">&quot;Python&quot;</span>, <span class="string">&quot;C#&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;Ruby&quot;</span>, <span class="string">&quot;Go&quot;</span>, <span class="string">&quot;Object C&quot;</span>)</span><br><span class="line">               .anyMatch(Objects::isNull);</span><br></pre></td></tr></table></figure>
+
+<p>allMatch检查流中流中所有元素是否匹配给定的条件，返回boolean值。</p>
+<p>noneMatch检查流中所以元素是否都不匹配给定的条件，返回boolean值。</p>
+<h3 id="1-3-11-findAny与findFirst"><a href="#1-3-11-findAny与findFirst" class="headerlink" title="1.3.11 findAny与findFirst"></a>1.3.11 findAny与findFirst</h3><p>findAny找到流中任意一个元素(通常是第一个)，返回一个Optional对象，如果流是空的，返回一个值为空的Optional对象，如果找到的元素刚好是空值，则抛出一个NullPointerException。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Optional</span>&lt;T&gt; &#123;</span><br><span class="line">	T t;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Optional</span>&lt;Integer&gt; <span class="variable">optional</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .findAny();</span><br><span class="line">                </span><br><span class="line"><span class="comment">//执行多次optional.get()始终是1</span></span><br></pre></td></tr></table></figure>
+<p>如果使用的是并行的流，那么findAny方法返回的值则是不确定的，比如下面的例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">array</span> <span class="operator">=</span> Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>);</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行多次返回值分别是：</span></span><br><span class="line"><span class="comment">第1次：</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">第2次：</span></span><br><span class="line"><span class="comment">4</span></span><br><span class="line"><span class="comment">7</span></span><br><span class="line"><span class="comment">2</span></span><br><span class="line"><span class="comment">6</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>findAny操作一般和filter结合起来用，用于筛选。</p>
+<p>如果想始终找到第一个元素，则应该用findFirst操作，即使是并行的流，页始终能返回第一个元素。</p>
+<p><em>短路求值：对于有些操作，不必处理整个流就能得到结果，就像用 || 连接起来的布尔表达式求值一样，只要提前找到一个为true的值就直接返回。流的操作中，anyMatch、findAny、findFirst都是短路操作，limit也是。</em></p>
+<h2 id="1-4-流与集合"><a href="#1-4-流与集合" class="headerlink" title="1.4 流与集合"></a>1.4 流与集合</h2><h3 id="1-4-1-流与集合概念的差异"><a href="#1-4-1-流与集合概念的差异" class="headerlink" title="1.4.1 流与集合概念的差异"></a>1.4.1 流与集合概念的差异</h3><p>从前面的例子中可以看到，通过Stream.of(…)方法可以得到一个流对象，看起来数据源似乎是保存在了流对象中，这和集合中保存一组数据很类似。但是，最终从流中获取一个集合，还需要调用collect(toList())方法，由此可见，流并不是集合。</p>
+<p>流与集合到底有什么差异呢？举一个形象的例子，存在DVD中的电影，这就是一个集合，因为它包含了电影的全部数据，而网上在线播放的视频则是一个视频流，它只加载你当前观看的这几帧，不用等到所有的数据都加载完了才能看。</p>
+<p>所以简单来讲，集合与流之间的差异就在于何时进行计算。集合是内存中的一种数据结构，它包含了数据源的所有值，集合的每个元素都需要先计算出来然后再加入到集合中。而流的元素则是按需计算，仅仅在用户需要的时候才会提取值，这是一种生产者—消费者的关系，只有消费者要求的时候才会去计算值。</p>
+<h3 id="1-4-2-流只能遍历一次"><a href="#1-4-2-流只能遍历一次" class="headerlink" title="1.4.2 流只能遍历一次"></a>1.4.2 流只能遍历一次</h3><p>和迭代器类似，流只能遍历一次，遍历完成之后，这个流就已经被消费掉了。如果想再次遍历，需从数据源重新获取一个流（如果数据源是可重复的比如集合，这会很容易，但如果像I&#x2F;O这种的话，就会很麻烦）。</p>
+<p>重复消费一个流会抛出IllegalArgumentException，表示流已经被操作，或者关闭。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; firms = Arrays.asList(&quot;Google&quot;, &quot;AT&amp;T&quot;, &quot;Amazon&quot;, &quot;Facebook&quot;, &quot;Oracle&quot;, &quot;MicroSoft&quot;);</span><br><span class="line">Stream&lt;String&gt; stream = Stream.of(firms);</span><br><span class="line">stream.forEach(System.out::println);</span><br><span class="line">stream.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-5-流的构建"><a href="#1-5-流的构建" class="headerlink" title="1.5 流的构建"></a>1.5 流的构建</h2><h3 id="1-5-1-数值流"><a href="#1-5-1-数值流" class="headerlink" title="1.5.1 数值流"></a>1.5.1 数值流</h3><p>在有些流的操作中，流中的元素如果是数值，会不可避免的产生装箱和拆箱的操作，比如，对菜品的价格求和：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line">int sumPrice = dishes.stream()</span><br><span class="line">		.map(Dish::getPrice)</span><br><span class="line">		.reduce(0, Integer::sum);</span><br></pre></td></tr></table></figure>
+<p>这段代码中，map操作会生成一个Stream<T>的流，因此，就需要将int类型装箱成Integer。在Java 8的Stream API中，为了避免这种拆装箱，提供了原始类型流特化，专门支持处理数值流。</p>
+<h4 id="1-5-1-1-原始类型流特化"><a href="#1-5-1-1-原始类型流特化" class="headerlink" title="1.5.1.1 原始类型流特化"></a>1.5.1.1 原始类型流特化</h4><p>Java 8中引入的原始类型流特化流有3个：IntStream、LongStream和DoubleStream，分别将流的元素特化为对应的基础类型。相应的这些流中也多了一些常用的数值操作，比如sum, average, max, min等。</p>
+<p>将流转化成特定的数值流常用的操作是map，对应的，map操作也有几个特定的方法，mapToInt、mapToLong、mapToDouble。比如上面对菜品价格求和的操作，就可以用IntStream来做：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line"><span class="type">int</span> <span class="variable">sumPrice</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice)</span><br><span class="line">		.sum;</span><br></pre></td></tr></table></figure>
+
+<p>有时候，也会有将数值流转回对象流的需求，这时候只需要将基础元素进行装箱操作就可以，使用的操作是boxed。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intSream</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">stream</span> <span class="operator">=</span> intStream.boxed();</span><br></pre></td></tr></table></figure>
+
+<p>上面讲findAny和findFirst操作的时候，提到了Optional对象，类似的，Optional类也对数值的基础类型进行了特化，有IntOptitonal、LongOptional和DoubleOptional三个类。</p>
+<h4 id="1-5-1-2-数值范围"><a href="#1-5-1-2-数值范围" class="headerlink" title="1.5.1.2 数值范围"></a>1.5.1.2 数值范围</h4><p>Java 8引入了两个可以用于InStream和LongStream的静态方法，range和rangeClose。区别是range不包含结束值，rangeClosed包含结束值。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.range(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.rangeClosed(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9,10]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-5-2-构建流的几种方式"><a href="#1-5-2-构建流的几种方式" class="headerlink" title="1.5.2 构建流的几种方式"></a>1.5.2 构建流的几种方式</h3><h4 id="1-5-2-1-由值创建流"><a href="#1-5-2-1-由值创建流" class="headerlink" title="1.5.2.1 由值创建流"></a>1.5.2.1 由值创建流</h4><p>使用Stream.of(T t …)方法可以创建出一个流，Stream.empty()可以创建一个没有元素的流：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">emptyStream</span> <span class="operator">=</span> Stream.empty();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-2-由数组创建流"><a href="#1-5-2-2-由数组创建流" class="headerlink" title="1.5.2.2 由数组创建流"></a>1.5.2.2 由数组创建流</h4><p>Arrays.stream可以从数组创建一个流，参数是一个数组。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] <span class="variable">intArray</span> <span class="operator">=</span> &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>&#125;;</span><br><span class="line">        </span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Arrays.stream(stringArray);</span><br><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> Arrays.stream(intArray);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">integerStream</span> <span class="operator">=</span> Arrays.stream(intArray).boxed();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-3-由集合生成流"><a href="#1-5-2-3-由集合生成流" class="headerlink" title="1.5.2.3 由集合生成流"></a>1.5.2.3 由集合生成流</h4><p>Java的Collection接口中，引入了stream()和parallelStream()两个默认方法，可以生成流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Arrays.asList(stringArray);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stream</span> <span class="operator">=</span> list.stream();</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">parallelStream</span> <span class="operator">=</span> list.parallelStream();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-4-由文件生成流"><a href="#1-5-2-4-由文件生成流" class="headerlink" title="1.5.2.4 由文件生成流"></a>1.5.2.4 由文件生成流</h4><p>Java 8的NIO API中，很多操作都可以返回一个流。比如，Files.lines就会根据文件内容返回一个流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Stream</span>&lt;String&gt; <span class="variable">lines</span> <span class="operator">=</span> Files.lines(Paths.get(<span class="string">&quot;.gitignore&quot;</span>), Charset.forName(<span class="string">&quot;utf-8&quot;</span>))</span><br><span class="line">                    .flatMap(line -&gt; Arrays.stream(line.split(<span class="string">&quot; &quot;</span>)));</span><br><span class="line">            lines.forEach(word -&gt; Printer.println(word));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-5-由函数生成流：创建无限流"><a href="#1-5-2-5-由函数生成流：创建无限流" class="headerlink" title="1.5.2.5 由函数生成流：创建无限流"></a>1.5.2.5 由函数生成流：创建无限流</h4><p>Stream API中提供了2个静态方法来从方法中生成流：Stream.iterate和Stream.generate，这2个方法都可以用来创建无限流，只要不结束，可以一直算下去。</p>
+<p><strong>iterate</strong></p>
+<p>iterate方法有两个重载的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//有结束条件的</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(T seed, Predicate&lt;? <span class="built_in">super</span> T&gt; hasNext, UnaryOperator&lt;T&gt; next)</span></span><br></pre></td></tr></table></figure>
+<p>和</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//没有限制，可以真正生成无限流</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(<span class="keyword">final</span> T seed, <span class="keyword">final</span> UnaryOperator&lt;T&gt; f)</span></span><br></pre></td></tr></table></figure>
+
+<p>例如，生成一个斐波那契数列：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.iterate(<span class="keyword">new</span> <span class="title class_">int</span>[]&#123;<span class="number">0</span>, <span class="number">1</span>&#125;,  t -&gt; <span class="keyword">new</span> <span class="title class_">int</span>[] &#123;t[<span class="number">1</span>], t[<span class="number">0</span>] + t[<span class="number">1</span>]&#125;)</span><br><span class="line">                .map(t -&gt; t[<span class="number">0</span>])</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>generate</strong></p>
+<p>和iterate方法类似，generate也生成一个无限流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">generate</span><span class="params">(Supplier&lt;? extends T&gt; s)</span></span><br></pre></td></tr></table></figure>
+
+<p>generate方法的参数是一个Supplier，它可以是无状态的，也可以是有状态的。</p>
+<p>无状态的Supplier，不会记录上一个状态，比如生成随机数，</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.generate(Math::random)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+<p>有状态的Supplier还可以是有状态的，它会记录前一个Supplier的状态（可以是值，属性等），比如还是生成一个斐波那契数列，在构建每一个元素时，都改变了supplier的属性：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntSupplier</span> <span class="variable">supplier</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IntSupplier</span>() &#123;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">pre</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">cur</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getAsInt</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldPre</span> <span class="operator">=</span> pre;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldCur</span> <span class="operator">=</span> cur;</span><br><span class="line">                <span class="built_in">this</span>.pre = cur;</span><br><span class="line">                <span class="built_in">this</span>.cur = oldPre + oldCur;</span><br><span class="line">                <span class="keyword">return</span> oldPre;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        IntStream.generate(supplier)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>Author: Ivan J. Lee<br>Date  : 2017-12-27 23:56</p>
+]]></content>
+      <tags>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java 8函数式编程–––Lambda表达式</title>
-    <url>/2017/11/28/Java-8_Lambda/</url>
+    <url>/2017/11/28/001-java-8-lambda/</url>
     <content><![CDATA[<h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><h3 id="1-1-匿名内部类"><a href="#1-1-匿名内部类" class="headerlink" title="1.1 匿名内部类"></a>1.1 匿名内部类</h3><p>设计匿名内部类的目的，是为了方便开发者将代码作为数据传递。举个栗子，在Android中，为一个按钮设置一个点击事件的监听器：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">button.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">     <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">(View view)</span> &#123;</span><br><span class="line">          Log.v(TAG, <span class="string">&quot;button is clicked!&quot;</span>);</span><br><span class="line">     &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
@@ -355,175 +375,87 @@ Layout</center>
       </tags>
   </entry>
   <entry>
-    <title>Java 8函数式数据处理</title>
-    <url>/2017/12/27/Java-8_Stream/</url>
-    <content><![CDATA[<h1 id="1-流"><a href="#1-流" class="headerlink" title="1 流"></a>1 流</h1><h2 id="1-1-流是什么"><a href="#1-1-流是什么" class="headerlink" title="1.1 流是什么"></a>1.1 流是什么</h2><p><strong>流</strong>是Java 8中新引入的概念，它允许你以声明式方式处理数据集合（通过查询语句来表达，而不是临时编写一个实现）。</p>
-<p>举个例子，筛选出价格大于¥50的菜品，并对这些菜品进行排序，最后返回菜品名称的集合，在Java 8之前：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//第一步，筛选</span></span><br><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">tempList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(dishes.size());</span><br><span class="line"><span class="keyword">for</span> (Dish dish : dishes) &#123;</span><br><span class="line">	<span class="keyword">if</span> (dish.getPriceCent() &gt; <span class="number">5000</span>) &#123;</span><br><span class="line">		tempList.add(dish);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//第二步，排序</span></span><br><span class="line">Collections.sort(tempList, <span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt;() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPriceCent() - d2.getPriceCent();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//第三步，返回名称集合</span></span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(tempList.size())</span><br><span class="line"><span class="keyword">for</span> (Dish dish : tempList) &#123;</span><br><span class="line">	result.add(dish.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在Java 8中，引入了流的概念之后，结合Lambda表达式：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">							.filter(dish -&gt; dish.getPriceCent() &gt; <span class="number">5000</span>)</span><br><span class="line">							.sorted(comparing(Dish::getPriceCent))</span><br><span class="line">							.map(Dish::getName)</span><br><span class="line">							.collect(toList());</span><br></pre></td></tr></table></figure>
-
-<p>流式方法的好处：</p>
+    <title>Kotlin中的数字类型的相等性</title>
+    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
+    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
 <ul>
-<li>代码是以声明性方式写的，说明想要完成什么，而不是如何实现一个操作；</li>
-<li>把几个基本操作链接起来，用以表达复杂的数据操作流水线，使代码清晰可读。</li>
+<li>结构型相等(&#x3D;&#x3D;)</li>
+<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
 </ul>
-<p>使用Java 8的Stream API可以写出这样的代码：</p>
+<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
+<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
+<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
 <ul>
-<li>声明性——更简洁 ，更易读</li>
-<li>可复合——更灵活</li>
-<li>可并行——性能更好</li>
+<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
+<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
+<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
 </ul>
-<h2 id="1-2-流简介"><a href="#1-2-流简介" class="headerlink" title="1.2 流简介"></a>1.2 流简介</h2><h3 id="1-2-1-概念和术语"><a href="#1-2-1-概念和术语" class="headerlink" title="1.2.1 概念和术语"></a>1.2.1 概念和术语</h3><p>Java 8中的集合支持一个新的stream方法，它会返回一个流，当然也有很多其他方法，比如利用数值范围或者I&#x2F;O资源也可以生成流元素。</p>
-<p>定义：<strong>从支持数据处理操作的源生成得元素序列。</strong></p>
-<p>关键概念：</p>
-<p>|术语 			|说明	|<br>|—-			|—-		|<br>|元素序列		|类似集合，流提供一个接口，可以访问特定元素类型的一组有序值。集合讲的是数据，流讲的是计算。|<br>|源				|流会使用一个提供数据的源，比如集合、数组或者是I&#x2F;O. 从有序集合生成流时会保留原有的序列。|<br>|数据处理操作	|流的数据处理功能类似于数据库的操作，以及函数式编程语言中的常用操作，如filter、map、reduce、find、match、sort等。流操作可以顺序执行，也可以并行执行。|<br>|流水线			|很多的流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个流水线。|<br>|内部迭代		|和使用迭代器进行显示迭代的集合不同，流的迭代操作是在背后进行的。|</p>
-<h3 id="1-2-2-外部迭代与内部迭代"><a href="#1-2-2-外部迭代与内部迭代" class="headerlink" title="1.2.2 外部迭代与内部迭代"></a>1.2.2 外部迭代与内部迭代</h3><p>使用Collection接口需要用户自己去做迭代，称为<strong>外部迭代</strong>。</p>
-<p>使用Stream进行的迭代是<strong>内部迭代</strong>，Stream已经帮你把迭代做了，你只需要告诉它你需要干什么就可以了。</p>
-<p>外部迭代：<br><img src="/../img/java8-out-iterator.PNG" alt="外部迭代"></p>
-<p>内部迭代：<br><img src="/../img/java8-inner-iterator.PNG"></p>
-<h2 id="1-3-常见的流操作"><a href="#1-3-常见的流操作" class="headerlink" title="1.3 常见的流操作"></a>1.3 常见的流操作</h2><h3 id="1-3-1-collect-toList"><a href="#1-3-1-collect-toList" class="headerlink" title="1.3.1 collect(toList)"></a>1.3.1 collect(toList)</h3><p>collect(toList)方法由Stream里的值生成一个列表。of方法可以生成一个流对象。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-3-2-map"><a href="#1-3-2-map" class="headerlink" title="1.3.2 map"></a>1.3.2 map</h3><p>map操作可以将一个流中的一种值转换成另一种类型的值，生成一个新的流(一对一映射)。比如，将一个集合中的字符串全部转换成大写。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">upperCaseList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;talk&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cheap&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;show&quot;</span>, <span class="string">&quot;me&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;code&quot;</span>)</span><br><span class="line">                .map(string -&gt; string.toUpperCase())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[TALK,IS,CHEAP,,,SHOW,ME,THE,CODE]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
+<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
+<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
+<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p> <img src="/../img/java8-map.PNG" alt="Java 8 map"></p>
-<p>map操作传入的Lambda表达式必须和Function接口的签名一致。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt; &#123;</span><br><span class="line">    <span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
+<p><strong>1、数字类型始终和自身相等</strong></p>
+<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
+<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
+<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
+<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
+<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
+<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
+<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
+<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
+<p><strong>5、值相等的数字，满足结构型相等</strong></p>
+<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
+<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<ul>
+<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
+<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
+<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+</ul>
+<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
+<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
+<ul>
+<li>认为 NaN 与其自身相等</li>
+<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
+<li>认为 -0.0 小于 0.0</li>
+</ul>
+<p>IEEE 754中对于浮点数比较的定义</p>
+<blockquote>
+<p> <strong>浮点数的比较</strong></p>
+<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
+<p> <strong>标准运算</strong></p>
+<p> 下述函数必须提供:</p>
+<p>……</p>
+<ul>
+<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
+<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
+</ul>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-3-3-flatMap"><a href="#1-3-3-flatMap" class="headerlink" title="1.3.3 flatMap"></a>1.3.3 flatMap</h3><p>flatMap方法使一个流中的每个值都换成另外一个流，然后把所有的流都连接起来成为一个流（笛卡尔乘积）。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//找出两个数组中共同的元素，形成一个集合</span></span><br><span class="line"></span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array1</span> <span class="operator">=</span> &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>&#125;;</span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array2</span> <span class="operator">=</span> &#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">11</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;Integer[]&gt; <span class="variable">list</span> <span class="operator">=</span> Stream</span><br><span class="line">                .of(array1)</span><br><span class="line">                .flatMap(a1 -&gt; Stream.of(array2).filter(a1::equals).map(a2 -&gt; <span class="keyword">new</span> <span class="title class_">Integer</span>[]&#123;a1, a2&#125;))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">  </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[&lt;2, 2&gt;, &lt;3, 3&gt;, &lt;5, 5&gt;, &lt;7, 7&gt;]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>flatMap操作接收的Lambda表达式必须与Function接口的签名一致，传入的范型为Function&lt;? super T, ? extends Stream&lt;? extends R&gt;&gt;.</p>
-<h3 id="1-3-4-filter"><a href="#1-3-4-filter" class="headerlink" title="1.3.4 filter"></a>1.3.4 filter</h3><p>filter用来遍历数据并选出符合特定条件的元素。比如筛选出一个字符串集合中仅含数字的字符串。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">digitList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a1c&quot;</span>, <span class="string">&quot;123&quot;</span>, <span class="string">&quot;1q2qw&quot;</span>, <span class="string">&quot;0.5&quot;</span>)</span><br><span class="line">                .filter(string -&gt; TextUtils.isDigitsOnly(string))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">                </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[123]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/../img/java8-filter.PNG"></p>
-<p>同样，filter操作传入的Lambda表达式必须和Predicate接口的签名一致。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-5-distinct"><a href="#1-3-5-distinct" class="headerlink" title="1.3.5 distinct"></a>1.3.5 distinct</h3><p>disdint方法会返回一个元素各异的流，简单来说，就是滤重（根据元素的hashCode和equals方法）。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">distinctList</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">                .distinct()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4]</span></span><br><span class="line"><span class="comment">*/</span>	</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-6-limit"><a href="#1-3-6-limit" class="headerlink" title="1.3.6 limit"></a>1.3.6 limit</h3><p>limit(n)会返回一个不超过给定长度的流。如果流是有序的，则最多会返回前n个元素。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .limit(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-7-skip"><a href="#1-3-7-skip" class="headerlink" title="1.3.7 skip"></a>1.3.7 skip</h3><p>skip(n)，会返回扔掉前n个元素的流，如果流中元素不超过n，则会返回一个空的流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .skip(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*	</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[4,5,6,7]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-8-min和max"><a href="#1-3-8-min和max" class="headerlink" title="1.3.8 min和max"></a>1.3.8 min和max</h3><p>求最小值和求最大值。比如求菜品集合中价格最低和最高的菜。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">dishes</span> <span class="operator">=</span> ...</span><br><span class="line"><span class="type">Dish</span> <span class="variable">max</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.max(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br><span class="line">	</span><br><span class="line"><span class="type">Dish</span> <span class="variable">min</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.mix(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-9-reduce"><a href="#1-3-9-reduce" class="headerlink" title="1.3.9 reduce"></a>1.3.9 reduce</h3><p>reduce操作可以从一组值中生成一个值，实际上max和min也是reduce操作，因为太常用，所以被纳入了标准库中。举例，求和：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">	.reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</span><br></pre></td></tr></table></figure>
-
-<p><img src="/../img/java8-reduce.PNG" alt="reduce"></p>
-<p>reduce对应的操作有3个重载的方法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//无初始值的</span></span><br><span class="line"><span class="type">Optional</span>&lt;T&gt; <span class="title function_">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">boolean</span> <span class="variable">foundAny</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream) &#123;</span><br><span class="line">	<span class="keyword">if</span> (!foundAny) &#123;</span><br><span class="line">	   foundAny = <span class="literal">true</span>;</span><br><span class="line">    	result = element;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	result = accumulator.apply(result, element);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> foundAny ? Optional.of(result) : Optional.empty();</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//带初始值的</span></span><br><span class="line"><span class="type">T</span> <span class="title function_">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//参数带两个BiFuction的</span></span><br><span class="line">&lt;U&gt; <span class="type">U</span> <span class="title function_">reduce</span><span class="params">(U identity,</span></span><br><span class="line"><span class="params">				BiFunction&lt;U, ? <span class="built_in">super</span> T, U&gt; accumulator,</span></span><br><span class="line"><span class="params">             BinaryOperator&lt;U&gt; combiner)</span>;</span><br><span class="line">             </span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">U</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-10-anyMatch、allMatch和noneMatch"><a href="#1-3-10-anyMatch、allMatch和noneMatch" class="headerlink" title="1.3.10 anyMatch、allMatch和noneMatch"></a>1.3.10 anyMatch、allMatch和noneMatch</h3><p>anyMatch判断流中是否至少有一个元素能匹配给定的条件，返回一个boolean值。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="variable">hasNullElements</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Java&quot;</span>, <span class="string">&quot;Python&quot;</span>, <span class="string">&quot;C#&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;Ruby&quot;</span>, <span class="string">&quot;Go&quot;</span>, <span class="string">&quot;Object C&quot;</span>)</span><br><span class="line">               .anyMatch(Objects::isNull);</span><br></pre></td></tr></table></figure>
-
-<p>allMatch检查流中流中所有元素是否匹配给定的条件，返回boolean值。</p>
-<p>noneMatch检查流中所以元素是否都不匹配给定的条件，返回boolean值。</p>
-<h3 id="1-3-11-findAny与findFirst"><a href="#1-3-11-findAny与findFirst" class="headerlink" title="1.3.11 findAny与findFirst"></a>1.3.11 findAny与findFirst</h3><p>findAny找到流中任意一个元素(通常是第一个)，返回一个Optional对象，如果流是空的，返回一个值为空的Optional对象，如果找到的元素刚好是空值，则抛出一个NullPointerException。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Optional</span>&lt;T&gt; &#123;</span><br><span class="line">	T t;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Optional</span>&lt;Integer&gt; <span class="variable">optional</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .findAny();</span><br><span class="line">                </span><br><span class="line"><span class="comment">//执行多次optional.get()始终是1</span></span><br></pre></td></tr></table></figure>
-<p>如果使用的是并行的流，那么findAny方法返回的值则是不确定的，比如下面的例子：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">array</span> <span class="operator">=</span> Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>);</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行多次返回值分别是：</span></span><br><span class="line"><span class="comment">第1次：</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">第2次：</span></span><br><span class="line"><span class="comment">4</span></span><br><span class="line"><span class="comment">7</span></span><br><span class="line"><span class="comment">2</span></span><br><span class="line"><span class="comment">6</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-<p>findAny操作一般和filter结合起来用，用于筛选。</p>
-<p>如果想始终找到第一个元素，则应该用findFirst操作，即使是并行的流，页始终能返回第一个元素。</p>
-<p><em>短路求值：对于有些操作，不必处理整个流就能得到结果，就像用 || 连接起来的布尔表达式求值一样，只要提前找到一个为true的值就直接返回。流的操作中，anyMatch、findAny、findFirst都是短路操作，limit也是。</em></p>
-<h2 id="1-4-流与集合"><a href="#1-4-流与集合" class="headerlink" title="1.4 流与集合"></a>1.4 流与集合</h2><h3 id="1-4-1-流与集合概念的差异"><a href="#1-4-1-流与集合概念的差异" class="headerlink" title="1.4.1 流与集合概念的差异"></a>1.4.1 流与集合概念的差异</h3><p>从前面的例子中可以看到，通过Stream.of(…)方法可以得到一个流对象，看起来数据源似乎是保存在了流对象中，这和集合中保存一组数据很类似。但是，最终从流中获取一个集合，还需要调用collect(toList())方法，由此可见，流并不是集合。</p>
-<p>流与集合到底有什么差异呢？举一个形象的例子，存在DVD中的电影，这就是一个集合，因为它包含了电影的全部数据，而网上在线播放的视频则是一个视频流，它只加载你当前观看的这几帧，不用等到所有的数据都加载完了才能看。</p>
-<p>所以简单来讲，集合与流之间的差异就在于何时进行计算。集合是内存中的一种数据结构，它包含了数据源的所有值，集合的每个元素都需要先计算出来然后再加入到集合中。而流的元素则是按需计算，仅仅在用户需要的时候才会提取值，这是一种生产者—消费者的关系，只有消费者要求的时候才会去计算值。</p>
-<h3 id="1-4-2-流只能遍历一次"><a href="#1-4-2-流只能遍历一次" class="headerlink" title="1.4.2 流只能遍历一次"></a>1.4.2 流只能遍历一次</h3><p>和迭代器类似，流只能遍历一次，遍历完成之后，这个流就已经被消费掉了。如果想再次遍历，需从数据源重新获取一个流（如果数据源是可重复的比如集合，这会很容易，但如果像I&#x2F;O这种的话，就会很麻烦）。</p>
-<p>重复消费一个流会抛出IllegalArgumentException，表示流已经被操作，或者关闭。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; firms = Arrays.asList(&quot;Google&quot;, &quot;AT&amp;T&quot;, &quot;Amazon&quot;, &quot;Facebook&quot;, &quot;Oracle&quot;, &quot;MicroSoft&quot;);</span><br><span class="line">Stream&lt;String&gt; stream = Stream.of(firms);</span><br><span class="line">stream.forEach(System.out::println);</span><br><span class="line">stream.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-5-流的构建"><a href="#1-5-流的构建" class="headerlink" title="1.5 流的构建"></a>1.5 流的构建</h2><h3 id="1-5-1-数值流"><a href="#1-5-1-数值流" class="headerlink" title="1.5.1 数值流"></a>1.5.1 数值流</h3><p>在有些流的操作中，流中的元素如果是数值，会不可避免的产生装箱和拆箱的操作，比如，对菜品的价格求和：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line">int sumPrice = dishes.stream()</span><br><span class="line">		.map(Dish::getPrice)</span><br><span class="line">		.reduce(0, Integer::sum);</span><br></pre></td></tr></table></figure>
-<p>这段代码中，map操作会生成一个Stream<T>的流，因此，就需要将int类型装箱成Integer。在Java 8的Stream API中，为了避免这种拆装箱，提供了原始类型流特化，专门支持处理数值流。</p>
-<h4 id="1-5-1-1-原始类型流特化"><a href="#1-5-1-1-原始类型流特化" class="headerlink" title="1.5.1.1 原始类型流特化"></a>1.5.1.1 原始类型流特化</h4><p>Java 8中引入的原始类型流特化流有3个：IntStream、LongStream和DoubleStream，分别将流的元素特化为对应的基础类型。相应的这些流中也多了一些常用的数值操作，比如sum, average, max, min等。</p>
-<p>将流转化成特定的数值流常用的操作是map，对应的，map操作也有几个特定的方法，mapToInt、mapToLong、mapToDouble。比如上面对菜品价格求和的操作，就可以用IntStream来做：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line"><span class="type">int</span> <span class="variable">sumPrice</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice)</span><br><span class="line">		.sum;</span><br></pre></td></tr></table></figure>
-
-<p>有时候，也会有将数值流转回对象流的需求，这时候只需要将基础元素进行装箱操作就可以，使用的操作是boxed。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intSream</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">stream</span> <span class="operator">=</span> intStream.boxed();</span><br></pre></td></tr></table></figure>
-
-<p>上面讲findAny和findFirst操作的时候，提到了Optional对象，类似的，Optional类也对数值的基础类型进行了特化，有IntOptitonal、LongOptional和DoubleOptional三个类。</p>
-<h4 id="1-5-1-2-数值范围"><a href="#1-5-1-2-数值范围" class="headerlink" title="1.5.1.2 数值范围"></a>1.5.1.2 数值范围</h4><p>Java 8引入了两个可以用于InStream和LongStream的静态方法，range和rangeClose。区别是range不包含结束值，rangeClosed包含结束值。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.range(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.rangeClosed(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9,10]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-5-2-构建流的几种方式"><a href="#1-5-2-构建流的几种方式" class="headerlink" title="1.5.2 构建流的几种方式"></a>1.5.2 构建流的几种方式</h3><h4 id="1-5-2-1-由值创建流"><a href="#1-5-2-1-由值创建流" class="headerlink" title="1.5.2.1 由值创建流"></a>1.5.2.1 由值创建流</h4><p>使用Stream.of(T t …)方法可以创建出一个流，Stream.empty()可以创建一个没有元素的流：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">emptyStream</span> <span class="operator">=</span> Stream.empty();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-2-由数组创建流"><a href="#1-5-2-2-由数组创建流" class="headerlink" title="1.5.2.2 由数组创建流"></a>1.5.2.2 由数组创建流</h4><p>Arrays.stream可以从数组创建一个流，参数是一个数组。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] <span class="variable">intArray</span> <span class="operator">=</span> &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>&#125;;</span><br><span class="line">        </span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Arrays.stream(stringArray);</span><br><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> Arrays.stream(intArray);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">integerStream</span> <span class="operator">=</span> Arrays.stream(intArray).boxed();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-3-由集合生成流"><a href="#1-5-2-3-由集合生成流" class="headerlink" title="1.5.2.3 由集合生成流"></a>1.5.2.3 由集合生成流</h4><p>Java的Collection接口中，引入了stream()和parallelStream()两个默认方法，可以生成流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Arrays.asList(stringArray);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stream</span> <span class="operator">=</span> list.stream();</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">parallelStream</span> <span class="operator">=</span> list.parallelStream();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-4-由文件生成流"><a href="#1-5-2-4-由文件生成流" class="headerlink" title="1.5.2.4 由文件生成流"></a>1.5.2.4 由文件生成流</h4><p>Java 8的NIO API中，很多操作都可以返回一个流。比如，Files.lines就会根据文件内容返回一个流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Stream</span>&lt;String&gt; <span class="variable">lines</span> <span class="operator">=</span> Files.lines(Paths.get(<span class="string">&quot;.gitignore&quot;</span>), Charset.forName(<span class="string">&quot;utf-8&quot;</span>))</span><br><span class="line">                    .flatMap(line -&gt; Arrays.stream(line.split(<span class="string">&quot; &quot;</span>)));</span><br><span class="line">            lines.forEach(word -&gt; Printer.println(word));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-5-由函数生成流：创建无限流"><a href="#1-5-2-5-由函数生成流：创建无限流" class="headerlink" title="1.5.2.5 由函数生成流：创建无限流"></a>1.5.2.5 由函数生成流：创建无限流</h4><p>Stream API中提供了2个静态方法来从方法中生成流：Stream.iterate和Stream.generate，这2个方法都可以用来创建无限流，只要不结束，可以一直算下去。</p>
-<p><strong>iterate</strong></p>
-<p>iterate方法有两个重载的方法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//有结束条件的</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(T seed, Predicate&lt;? <span class="built_in">super</span> T&gt; hasNext, UnaryOperator&lt;T&gt; next)</span></span><br></pre></td></tr></table></figure>
-<p>和</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//没有限制，可以真正生成无限流</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(<span class="keyword">final</span> T seed, <span class="keyword">final</span> UnaryOperator&lt;T&gt; f)</span></span><br></pre></td></tr></table></figure>
-
-<p>例如，生成一个斐波那契数列：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.iterate(<span class="keyword">new</span> <span class="title class_">int</span>[]&#123;<span class="number">0</span>, <span class="number">1</span>&#125;,  t -&gt; <span class="keyword">new</span> <span class="title class_">int</span>[] &#123;t[<span class="number">1</span>], t[<span class="number">0</span>] + t[<span class="number">1</span>]&#125;)</span><br><span class="line">                .map(t -&gt; t[<span class="number">0</span>])</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-
-
-<p><strong>generate</strong></p>
-<p>和iterate方法类似，generate也生成一个无限流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">generate</span><span class="params">(Supplier&lt;? extends T&gt; s)</span></span><br></pre></td></tr></table></figure>
-
-<p>generate方法的参数是一个Supplier，它可以是无状态的，也可以是有状态的。</p>
-<p>无状态的Supplier，不会记录上一个状态，比如生成随机数，</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.generate(Math::random)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-<p>有状态的Supplier还可以是有状态的，它会记录前一个Supplier的状态（可以是值，属性等），比如还是生成一个斐波那契数列，在构建每一个元素时，都改变了supplier的属性：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntSupplier</span> <span class="variable">supplier</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IntSupplier</span>() &#123;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">pre</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">cur</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getAsInt</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldPre</span> <span class="operator">=</span> pre;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldCur</span> <span class="operator">=</span> cur;</span><br><span class="line">                <span class="built_in">this</span>.pre = cur;</span><br><span class="line">                <span class="built_in">this</span>.cur = oldPre + oldCur;</span><br><span class="line">                <span class="keyword">return</span> oldPre;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        IntStream.generate(supplier)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p>Author: Ivan J. Lee<br>Date  : 2017-12-27 23:56</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 ]]></content>
       <tags>
-        <tag>java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Welcome</title>
-    <url>/2017/06/08/first_page/</url>
-    <content><![CDATA[<p>Welcome</p>
-<p><a href="about/index.html">About Me</a></p>
-]]></content>
-      <categories>
-        <category>other</category>
-      </categories>
-      <tags>
-        <tag>other</tag>
-        <tag>test</tag>
+        <tag>Kotlin</tag>
       </tags>
   </entry>
   <entry>
     <title>Git常用命令</title>
-    <url>/2017/06/08/git/</url>
+    <url>/2017/06/08/003-git/</url>
     <content><![CDATA[<p><em>本文出处<a href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#x67;&#x69;&#x74;&#x40;&#x67;&#x69;&#x74;&#104;&#x75;&#98;&#46;&#99;&#111;&#x6d;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#116;&#64;&#103;&#x69;&#x74;&#x68;&#117;&#98;&#46;&#x63;&#111;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
@@ -694,121 +626,175 @@ Layout</center>
       </tags>
   </entry>
   <entry>
-    <title>Kotlin中的数字类型的相等性</title>
-    <url>/2019/02/27/Kotlin-Numbers-Equality/</url>
-    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
-<ul>
-<li>结构型相等(&#x3D;&#x3D;)</li>
-<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
-</ul>
-<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
-<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
-<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
-<ul>
-<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
-<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
-<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
-</ul>
-<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
-<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
-<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
-<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
-<p><strong>1、数字类型始终和自身相等</strong></p>
-<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
-<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
-<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
-<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
-<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
-<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
-<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
-<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
-<p><strong>5、值相等的数字，满足结构型相等</strong></p>
-<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
-<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
-<ul>
-<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
-<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
-<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
-</ul>
-<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
-<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
-<ul>
-<li>认为 NaN 与其自身相等</li>
-<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
-<li>认为 -0.0 小于 0.0</li>
-</ul>
-<p>IEEE 754中对于浮点数比较的定义</p>
-<blockquote>
-<p> <strong>浮点数的比较</strong></p>
-<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
-<p> <strong>标准运算</strong></p>
-<p> 下述函数必须提供:</p>
-<p>……</p>
-<ul>
-<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
-<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
-</ul>
+    <title>使用ConstraintLayout构建响应式布局</title>
+    <url>/2019/01/24/100-android-constraint-layout/</url>
+    <content><![CDATA[<h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1 简介"></a>1 简介</h2><blockquote>
+<p>使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。</p>
+<p>ContraintLayout的API和Android Studio的布局编辑器的图形化工具是相辅相成的，通过布局编辑器的图形化工具，可以直接使用ConstraintLayout的全部特性。在使用ConstraintLayout时，可以直接拖拽进行布局，完全不用编辑xml。</p>
+<p>ConstraintLayout支持Android 2.3(API 9)以上，本文是在Android Studio 3.0及以上版本中使用ConstraintLayout的教程，如果想要了解Android Studio中更多关于布局编辑器的内容，可以参考官网<a href="https://developer.android.com/studio/write/layout-editor.html">Build a UI with Layout Editor</a>。</p>
+<p>如果想要看ConstraintLayout的Demo，可以去GitHub上围观：<a href="https://github.com/googlesamples/android-ConstraintLayoutExamples">https://github.com/googlesamples/android-ConstraintLayoutExamples</a>。</p>
 </blockquote>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-约束预览"><a href="#2-约束预览" class="headerlink" title="2 约束预览"></a>2 约束预览</h2><blockquote>
+<p>要确定一个View在ConstraintLayout中的位置，至少需要指定一个水平或者垂直的约束。每一个约束都代表了一个View和其它的View，其父View或者不可见的基准线之间的联系或者对齐关系。每一个约束都定义了View相对于横轴和纵轴的位置，因此，确定一个View的位置必须至少相对于横轴和纵轴各指定一个约束，通常来说，我们需要指定的约束会有多个。</p>
+<p>在Android Studio中，当把一个View拖到布局编辑器中的时候，这个View一般会显示在你拖动的位置，但是这仅仅是为了便于我们编辑，如果一个View一个约束也没有，那它会显示在坐标[0, 0]的位置，即左上角。</p>
+</blockquote>
+<p>比如下面的两种情况：</p>
+<center>
+![图1 A和C没有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf0fiigij20cw068dfr.jpg)</br>
+图1 A和C没有约束
+</center>
 
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Kotlin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>进程与线程</title>
-    <url>/2020/08/03/processes-and-threads/</url>
-    <content><![CDATA[<h2 id="进程和线程概览"><a href="#进程和线程概览" class="headerlink" title="进程和线程概览"></a>进程和线程概览</h2><p>当应用组件启动且该应用未运行任何其他组件时，Android 系统会使用单个执行线程为应用启动新的 Linux 进程。默认情况下，同一应用的所有组件会在相同的进程和线程（称为“主”线程）中运行。如果某个应用组件启动且该应用已存在进程（因为存在该应用的其他组件），则该组件会在此进程内启动并使用相同的执行线程。但是，您可以安排应用中的其他组件在单独的进程中运行，并为任何进程创建额外的线程。</p>
-<p>本文档介绍进程和线程在 Android 应用中的工作方式。</p>
-<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><p>默认情况下，同一应用的所有组件均在相同的进程中运行，且大多数应用都不应改变这一点。但是，如果您发现需要控制某个组件所属的进程，则可在清单文件中执行此操作。</p>
-<p>各类组件元素（<activity>、<service>、<receiver> 和 <provider>）的清单文件条目均支持 android:process 属性，此属性可指定该组件应在哪个进程中运行。您可以设置此属性，使每个组件均在各自的进程中运行，或者使某些组件共享一个进程，而其他组件则不共享。您也可设置 android:process，以便不同应用的组件在同一进程中运行，但前提是这些应用共享相同的 Linux 用户 ID 并使用相同的证书进行签署。</p>
-<p>此外，<application> 元素还支持 android:process 属性，用来设置适用于所有组件的默认值。</p>
-<p>当内存不足，而其他更急于为用户提供服务的进程又需要内存时，Android 可能会决定在某一时刻关闭某个进程。正因如此，系统会销毁在被终止进程中运行的应用组件。当这些组件需再次运行时，系统将为其重启进程。</p>
-<p>决定终止哪个进程时，Android 系统会权衡其对用户的相对重要性。例如，相较于托管可见 Activity 的进程而言，系统更有可能关闭托管屏幕上不再可见的 Activity 的进程。因此，是否终止某个进程的决定取决于该进程中所运行组件的状态。</p>
-<p>如需详细了解进程生命周期及其与应用状态的关系，请参阅进程和应用生命周期。</p>
-<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><p>启动应用时，系统会为该应用创建一个称为“main”（主线程）的执行线程。此线程非常重要，因为其负责将事件分派给相应的界面微件，其中包括绘图事件。此外，应用与 Android 界面工具包组件（来自 android.widget 和 android.view 软件包的组件）也几乎都在该线程中进行交互。因此，主线程有时也称为界面线程。但在一些特殊情况下，应用的主线程可能并非其界面线程，相关详情请参阅线程注解。</p>
-<p>系统不会为每个组件实例创建单独的线程。在同一进程中运行的所有组件均在界面线程中进行实例化，并且对每个组件的系统调用均由该线程进行分派。因此，响应系统回调的方法（例如，报告用户操作的 onKeyDown() 或生命周期回调方法）始终在进程的界面线程中运行。</p>
-<p>例如，当用户轻触屏幕上的按钮时，应用的界面线程会将轻触事件分派给微件，而微件转而会设置其按下状态，并将失效请求发布到事件队列中。界面线程从队列中取消该请求，并通知该微件对其自身进行重绘。</p>
-<p>当应用执行繁重的任务以响应用户交互时，除非您正确实现应用，否则这种单线程模式可能会导致性能低下。具体地讲，如果界面线程需要处理所有任务，则执行耗时较长的操作（例如，网络访问或数据库查询）将会阻塞整个界面线程。一旦被阻塞，线程将无法分派任何事件，包括绘图事件。从用户的角度来看，应用会显示为挂起状态。更糟糕的是，如果界面线程被阻塞超过几秒钟时间（目前大约是 5 秒钟），用户便会看到令人厌烦的“应用无响应”(ANR) 对话框。如果引起用户不满，他们可能就会决定退出并卸载此应用。</p>
-<p>此外，Android 界面工具包并非线程安全工具包。所以您不得通过工作线程操纵界面，而只能通过界面线程操纵界面。因此，Android 的单线程模式必须遵守两条规则：</p>
-<ol>
-<li>不要阻塞 UI 线程</li>
-<li>不要在 UI 线程之外访问 Android UI 工具包</li>
+<center>
+![图2 A和C有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf10sjdgj20cw068dfu.jpg)</br>
+图2 A和C有约束
+</center>
+
+<p>图1中，A和C没有约束关系，尽管在预览时会看到C在A的下方，实际运行时，C会浮到屏幕的最顶端。图2中，加上了A和C的约束(红圈所示)之后，C就会位于A的下方。</p>
+<h2 id="3-配置ConstraintLayout"><a href="#3-配置ConstraintLayout" class="headerlink" title="3 配置ConstraintLayout"></a>3 配置ConstraintLayout</h2><ol>
+<li>maven仓库的配置</li>
 </ol>
-<h3 id="工作线程"><a href="#工作线程" class="headerlink" title="工作线程"></a>工作线程</h3><p>根据上述单线程模式，如要保证应用界面的响应能力，关键是不能阻塞界面线程。如果执行的操作不能即时完成，则应确保它们在单独的线程（“后台”或“工作”线程）中运行。</p>
-<p>但请注意，除了界面线程或“主”线程，您无法更新任何其他线程的界面。</p>
-<p>为解决此问题，Android 提供了几种途径，以便您从其他线程访问界面线程。以下列出了几种有用的方法：</p>
-<ul>
-<li>Activity.runOnUiThread(Runnable)</li>
-<li>View.post(Runnable)</li>
-<li>View.postDelayed(Runnable, long)</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">(View v)</span> &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="comment">// a potentially time consuming task</span></span><br><span class="line">            <span class="keyword">final</span> <span class="type">Bitmap</span> <span class="variable">bitmap</span> <span class="operator">=</span></span><br><span class="line">                    processBitMap(<span class="string">&quot;image.png&quot;</span>);</span><br><span class="line">            imageView.post(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">                <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                    imageView.setImageBitmap(bitmap);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 在最新版本的gradle中，Google迁移了maven仓库，所以需要在项目根目录的build.gradle中添加：</p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">   maven &#123;</span><br><span class="line">       url &#x27;https://maven.google.com&#x27;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 或者是</p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">       jcenter()</span><br><span class="line">       google()</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
 
-<p>上述实现属于线程安全型：在单独的线程中完成后台操作，同时始终在界面线程中操纵 ImageView。</p>
-<p>但是，随着操作日趋复杂，这类代码也会变得复杂且难以维护。如要通过工作线程处理更复杂的交互，可以考虑在工作线程中使用 Handler 处理来自界面线程的消息。当然，最好的解决方案或许是扩展 AsyncTask 类，此类可简化与界面进行交互所需执行的工作线程任务。</p>
-<h4 id="使用-AsyncTask"><a href="#使用-AsyncTask" class="headerlink" title="使用 AsyncTask"></a>使用 AsyncTask</h4><p>AsyncTask 允许对界面执行异步操作。它会先阻塞工作线程中的操作，然后在界面线程中发布结果，而无需您亲自处理线程和&#x2F;或处理程序。</p>
-<p>如要使用该类，您必须创建 AsyncTask 的子类并实现 doInBackground() 回调方法，该方法会在后台线程池中运行。如要更新界面，您应实现 onPostExecute()（该方法会传递 doInBackground() 返回的结果并在界面线程中运行），以便安全更新界面。然后，您可以通过从界面线程调用 execute() 来运行任务。</p>
-<p>如要全面了解如何使用此类，请阅读 AsyncTask 参考文档。</p>
-<h3 id="线程安全方法"><a href="#线程安全方法" class="headerlink" title="线程安全方法"></a>线程安全方法</h3><p>在某些情况下，系统可能会从多个线程调用您实现的方法，因此编写这些方法时必须确保其满足线程安全的要求。</p>
-<p>这一点主要适用于可以远程调用的方法，如绑定服务中的方法。如果对 IBinder 中所实现方法的调用源自运行 IBinder 的同一进程，则系统会在调用方的线程中执行该方法。但是，如果调用源自其他进程，则系统会选择线程池中的某个线程，并在此线程中（而不是在进程的界面线程中）执行该方法，线程池由系统在与 IBinder 相同的进程中进行维护。例如，即使服务的 onBind() 方法通过服务进程的界面线程调用，在 onBind() 所返回对象中实现的方法（例如，实现 RPC 方法的子类）仍会通过线程池中的线程调用。由于服务可以有多个客户端，因此多个池线程可同时使用相同的 IBinder 方法。因此，IBinder 方法必须实现为线程安全方法。</p>
-<p>同样，内容提供程序也可接收来自其他进程的数据请求。尽管 ContentResolver 和 ContentProvider 类隐藏了如何管理进程间通信的细节，但系统会从内容提供程序进程的线程池（而非进程的界面线程）调用响应这些请求的 ContentProvider 方法（query()、insert()、delete()、update() 和 getType() 方法）。由于系统可能会同时从任意数量的线程调用这些方法，因此它们也必须实现为线程安全的方法。</p>
-<h2 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h2><p>Android 利用远程过程调用 (RPC) 提供了一种进程间通信 (IPC) 机制，在此机制中，系统会（在其他进程中）远程执行由 Activity 或其他应用组件调用的方法，并将所有结果返回给调用方。因此，您需将方法调用及其数据分解至操作系统可识别的程度，并将其从本地进程和地址空间传输至远程进程和地址空间，然后在远程进程中重新组装并执行该调用。然后，返回值将沿相反方向传输回来。Android 提供执行这些 IPC 事务所需的全部代码，因此您只需集中精力定义和实现 RPC 编程接口。</p>
-<p>如要执行 IPC，您必须使用 bindService() 将应用绑定到服务。如需了解详细信息，请参阅Service开发者指南。</p>
+<ol start="2">
+<li>添加gradle最新版本的依赖，目前稳定版本是1.0.2，1.1.0还是beta版。</li>
+</ol>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    compile &#x27;com.android.support.constraint:constraint-layout:1.0.2&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>同步gradle</li>
+</ol>
+<h2 id="4-在项目中使用ConstraintLayout"><a href="#4-在项目中使用ConstraintLayout" class="headerlink" title="4 在项目中使用ConstraintLayout"></a>4 在项目中使用ConstraintLayout</h2><p>在Android Studio 3.0+中，可以把旧的布局转换成ConstraintLayout，也可以在新建Constraint<br>Layout。如果没做特别的配置，使用Android Studio的Activity模版新建Activity时，布局文件根布局会默认是ConstraintLayout。</p>
+<p>将普通布局文件转换成ConstraintLayout：<br>切到Design面板-&gt;打开Component Tree-&gt;右键选中一个Layout，选择Convert XXXLayout to ConstraintLayout；</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqks0e1w4j20n20i5q38.jpg)</br>
+图3 将普通布局转换成Constraint
+Layout</center>
+
+<h2 id="5-实战练习"><a href="#5-实战练习" class="headerlink" title="5 实战练习"></a>5 实战练习</h2><h3 id="5-1-添加相对于父布局的位置约束"><a href="#5-1-添加相对于父布局的位置约束" class="headerlink" title="5.1 添加相对于父布局的位置约束"></a>5.1 添加相对于父布局的位置约束</h3><p>新建一个布局文件，根布局选择为ConstraintLayout，切换到Design面板</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqluzldu4j21ue19sn4v.jpg)</br>
+图4 新建一个的ConstraintLayout
+</center>
+
+<p>拖动一个控件到面板中，此时没有任何约束，会看到控件上报了一个错误，提示没有约束，如果直接运行，这个TextView会显示到屏幕的左上角</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqlxou6m8j21u817ewm2.jpg)
+图5 未添加约束时的警告
+</center>
+
+<p>添加相对于父布局的约束，在一个方向上可以添加一个或者两个约束</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqm9npfx3g20pk0g4172.gif)</br>
+图6 添加左侧的约束
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmn6pigmg20pk0g4atu.gif)</br>
+图7 添加右侧的约束
+</center>
+
+<h3 id="5-2-添加相对于兄弟View的位置约束"><a href="#5-2-添加相对于兄弟View的位置约束" class="headerlink" title="5.2 添加相对于兄弟View的位置约束"></a>5.2 添加相对于兄弟View的位置约束</h3><p>添加相对于其它View的约束，下图中B、C只添加了对A的约束，运行起来后，B贴在屏幕顶部且在A的右边，C贴在屏幕的左侧且位于A的下方。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmvdktk7j215q0yctb7.jpg)
+</br>
+图7 相对于其它View的约束
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqswt7oohj20ko1240yx.jpg"><br>图8 运行的实际效果</p>
+</center>
+
+<h3 id="5-3-添加对齐方式"><a href="#5-3-添加对齐方式" class="headerlink" title="5.3 添加对齐方式"></a>5.3 添加对齐方式</h3><p>在两个View的同一个方向(水平或垂直)上，把两个View的两条边连接起来即可添加对其约束。添加对其约束之后，laytou_marginXXX等属性仍然会生效。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnp0oot8j215o0y6mzp.jpg)
+</br>
+图9 C与A的左侧对其，B与A的顶部对其且向下偏移16dp
+</center>
+
+<h3 id="5-4-删除约束"><a href="#5-4-删除约束" class="headerlink" title="5.4 删除约束"></a>5.4 删除约束</h3><p>删除约束很简单，选中一个View，鼠标hover在View的一个约束上时，约束会变红，点按即可删除。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnhkw90vj215q0yedir.jpg)
+</br>
+图10 删除一个约束
+</center>
+
+<h3 id="5-5-相对于guideline的约束"><a href="#5-5-相对于guideline的约束" class="headerlink" title="5.5 相对于guideline的约束"></a>5.5 相对于guideline的约束</h3><p>除了相对于父布局和兄弟View，ConstraintLayout中还可以在水平方向和垂直方向上添加guide，ConstraintLayout内的View可以添加相对于guideline的约束。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqojv5ddcj20r4072my3.jpg)
+</br>
+图11 添加guideline
+</center>
+
+<p>添加的guideline在xml布局中表现和View一样。guideline可以像View一样添加约束。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqoogvy5jj20rg09ctax.jpg)
+</br>
+图12 guideline在xml中的表示
+</center>
+
+<p>添加完guideline之后，选中guideline，在布局的边缘可以看到一个小三角或者百分号，点击可以切换guideline相对于布局编辑的位置，显示为小三角的方向表示guideline距布局边界的绝对位置（单位是dp），百分号则表示相对位置</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqr0whwlmj21ts1acqbo.jpg)
+</br>
+图13 guideline在屏幕垂直方向上20%的位置，A位于guideline的下方
+</center>
+
+<h3 id="5-6-添加相对于View的barrie"><a href="#5-6-添加相对于View的barrie" class="headerlink" title="5.6 添加相对于View的barrie"></a>5.6 添加相对于View的barrie</h3><p>barrier是ConstraintLayout 1.1中新加的特性，barrier和guideline类似，从字面意思可以理解，它相当于一个屏障，包含在其中的View不能越过它的位置。举个例子，图14的布局中，B位于A的右侧，当C位于A的下方，当C的文字比较少时，B会在C的右侧，当C的文字比较多时，C就会被B盖住，但是B左侧的约束又只能有一个。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
+</br>
+图13 C的文字比较少
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtars5vij21aa124n0c.jpg"><br></br><br>图13 C的文字比较多时，B盖住了C</p>
+</center>
+
+
+<p>此时就可以添加一个barrier，在B的左侧添加一个到barrier的约束，使B的位置随着A、C的内容左右移动而不用担心B的内容盖住A。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
+</br>
+图13 C的文字比较少
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtjpiz20j21ae124adv.jpg"><br></br><br>图14 B添加了相对于barrier的约束</p>
+</center>
+
+<p>添加barrier的方法：</p>
+<blockquote>
+<ol>
+<li>Click Guidelines <img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtmbpbvij200w00w047.jpg">in the toolbar, and then click Add Vertical Barrier or Add Horizontal Barrier.</li>
+<li>In the Component Tree window, select the views you want inside the barrier and drag them into the barrier component.</li>
+<li>Select the barrier from the Component Tree, open the Attributes window, and then set the barrierDirection.</li>
+</ol>
+</blockquote>
+<ol>
+<li>点击工具栏添加guideline的位置，添加垂直或者水平的barrier；</li>
+<li>在Component Tree视图中，把想要限制的View拖进barrier中；</li>
+<li>在Component Tree中选中barrier，打开右侧的属性窗口，设置barrierDirection属性。</li>
+</ol>
+<h3 id="5-7-调节约束的位置"><a href="#5-7-调节约束的位置" class="headerlink" title="5.7 调节约束的位置"></a>5.7 调节约束的位置</h3><p>在前面，给View水平方向上添加2个约束时，会发现View自动水平居中了。此时，可以调节ConstraintLayout的bias，使其在屏幕一定比例的位置上，而不是居中。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnk39ur1g21g80p0x6r.gif)
+</br>
+图15 调节约束的位置
+</center>
+
+<h3 id="5-8-调节View的大小"><a href="#5-8-调节View的大小" class="headerlink" title="5.8 调节View的大小"></a>5.8 调节View的大小</h3><p>ConstraintLayout的子View中，除了可以通过正常的layout_width和layout_height来限制View的宽高为，在Design面板的右侧，可以很方便调整View的大小。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnm43y7lj20fr0j9jte.jpg)
+</br>
+图16 调节View的大小
+</center>
+图中的编号中，
+
+<ol>
+<li>调节View的宽高比</li>
+<li>删除某个方向上的约束</li>
+<li>View的宽高模式，Fixed（宽高写死），Wrap Content，Match Constraints（和match parent一样）</li>
+<li>View的margin值</li>
+<li>bias</li>
+</ol>
+<h3 id="5-9-链式线性分组"><a href="#5-9-链式线性分组" class="headerlink" title="5.9 链式线性分组"></a>5.9 链式线性分组</h3><p>在一个链式线性分组内的View会在一个方向上形成一个双向约束，互相约束。</p>
 ]]></content>
+      <categories>
+        <category>tech</category>
+      </categories>
       <tags>
         <tag>Android</tag>
       </tags>
