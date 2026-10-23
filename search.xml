@@ -375,12 +375,290 @@
       </tags>
   </entry>
   <entry>
+    <title>Kotlin 委托（Delegation）详解</title>
+    <url>/2026/10/23/002-kotlin-delegate/</url>
+    <content><![CDATA[<p>Kotlin 的委托是一种<strong>将职责转交给其他对象</strong>的机制，分为两大类：</p>
+<ul>
+<li><strong>属性委托（Property Delegation）</strong>：把属性的 <code>get</code> &#x2F; <code>set</code> 委托给另一个对象。</li>
+<li><strong>类委托（Class Delegation）</strong>：把接口的实现委托给另一个对象。</li>
+</ul>
+<p>委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。</p>
+<hr>
+<h2 id="一、属性委托"><a href="#一、属性委托" class="headerlink" title="一、属性委托"></a>一、属性委托</h2><h3 id="1-1-基本语法"><a href="#1-1-基本语法" class="headerlink" title="1.1 基本语法"></a>1.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span>/<span class="keyword">var</span> &lt;属性名&gt;: &lt;类型&gt; <span class="keyword">by</span> &lt;委托对象&gt;</span><br></pre></td></tr></table></figure>
+
+<p>委托对象必须提供：</p>
+<ul>
+<li><code>getValue</code>：用于 <code>val</code> 和 <code>var</code></li>
+<li><code>setValue</code>：仅用于 <code>var</code></li>
+</ul>
+<p>这两个方法可以是成员函数，也可以是扩展函数。</p>
+<h3 id="1-2-标准委托"><a href="#1-2-标准委托" class="headerlink" title="1.2 标准委托"></a>1.2 标准委托</h3><p>Kotlin 标准库提供三种常用属性委托：</p>
+<h4 id="by-lazy"><a href="#by-lazy" class="headerlink" title="by lazy"></a><code>by lazy</code></h4><p>延迟初始化，首次访问时计算，之后缓存。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> lazyValue: String <span class="keyword">by</span> lazy &#123;</span><br><span class="line">    println(<span class="string">&quot;computed!&quot;</span>)</span><br><span class="line">    <span class="string">&quot;Hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println(lazyValue) <span class="comment">// computed! Hello</span></span><br><span class="line">println(lazyValue) <span class="comment">// Hello（不重复计算）</span></span><br></pre></td></tr></table></figure>
+
+<p>线程安全模式：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.SYNCHRONIZED) &#123; ... &#125; <span class="comment">// 默认，双重检查锁</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.PUBLICATION) &#123; ... &#125;  <span class="comment">// 多线程可多次初始化，保留一个</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.NONE) &#123; ... &#125;         <span class="comment">// 无锁，单线程</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：单例、昂贵对象初始化、Android 中初始化 Adapter、ViewModel。</p>
+<h4 id="by-observable"><a href="#by-observable" class="headerlink" title="by observable"></a><code>by observable</code></h4><p>属性变化时回调旧值和新值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; property, old, new -&gt;</span><br><span class="line">    println(<span class="string">&quot;<span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;Alice&quot;</span> <span class="comment">// name: init -&gt; Alice</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="by-vetoable"><a href="#by-vetoable" class="headerlink" title="by vetoable"></a><code>by vetoable</code></h4><p>属性变化时回调，返回 <code>false</code> 可阻止赋值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, old, new -&gt;</span><br><span class="line">    new &gt;= <span class="number">0</span> <span class="comment">// 负数拒绝赋值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="by-notNull"><a href="#by-notNull" class="headerlink" title="by notNull"></a><code>by notNull</code></h4><p>用于替代 <code>lateinit</code>，支持非空类型，但可检查是否初始化。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.notNull()</span><br><span class="line"><span class="comment">// println(name) // 抛 IllegalStateException</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：Android 中 <code>lateinit</code> 无法用于基本类型时。</p>
+<h3 id="1-3-自定义属性委托"><a href="#1-3-自定义属性委托" class="headerlink" title="1.3 自定义属性委托"></a>1.3 自定义属性委托</h3><p>实现 <code>ReadWriteProperty</code> 或 <code>ReadOnlyProperty</code> 接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingProperty</span>&lt;<span class="type">T</span>&gt;(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> value: T</span><br><span class="line">) : ReadWriteProperty&lt;Any?, T&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T &#123;</span><br><span class="line">        println(<span class="string">&quot;get <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;set <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span> -&gt; <span class="variable">$newValue</span>&quot;</span>)</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>也可以直接写 <code>getValue</code> &#x2F; <code>setValue</code> 的 <code>operator</code> 方法（不实现接口）：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SimpleDelegate</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">var</span> value: T) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T = value</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-编译原理"><a href="#1-4-编译原理" class="headerlink" title="1.4 编译原理"></a>1.4 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LoggingProperty</span> <span class="variable">name$delegate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoggingProperty</span>(<span class="string">&quot;init&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> name$delegate.getValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">setName</span><span class="params">(String value)</span> &#123;</span><br><span class="line">    name$delegate.setValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>], value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个委托对象字段。</li>
+<li>属性访问转发到 <code>getValue</code> &#x2F; <code>setValue</code>。</li>
+<li><code>$$delegatedProperties</code> 是 <code>KProperty</code> 数组，缓存属性元信息。</li>
+</ul>
+<h3 id="1-5-委托的-provideDelegate"><a href="#1-5-委托的-provideDelegate" class="headerlink" title="1.5 委托的 provideDelegate"></a>1.5 委托的 <code>provideDelegate</code></h3><p>在属性声明时执行额外逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceDelegate</span> &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">provideDelegate</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: ResourceDelegate &#123;</span><br><span class="line">        println(<span class="string">&quot;creating delegate for <span class="subst">$&#123;property.name&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: String = <span class="string">&quot;value&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> x: String <span class="keyword">by</span> ResourceDelegate()</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行顺序</strong>：<code>provideDelegate</code> → <code>getValue</code> &#x2F; <code>setValue</code>。</p>
+<p><strong>适用场景</strong>：属性名校验、依赖注入、资源绑定。</p>
+<hr>
+<h2 id="二、类委托"><a href="#二、类委托" class="headerlink" title="二、类委托"></a>二、类委托</h2><h3 id="2-1-基本语法"><a href="#2-1-基本语法" class="headerlink" title="2.1 基本语法"></a>2.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span>(<span class="keyword">private</span> <span class="keyword">val</span> base: Base) : Base <span class="keyword">by</span> base</span><br></pre></td></tr></table></figure>
+
+<p>编译器自动生成所有接口方法的转发实现。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConsolePrinter</span> : <span class="type">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingPrinter</span>(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">inner</span>: Printer) : Printer <span class="keyword">by</span> <span class="keyword">inner</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Before&quot;</span>)</span><br><span class="line">        <span class="keyword">inner</span>.print(msg)</span><br><span class="line">        println(<span class="string">&quot;After&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-原理"><a href="#2-2-原理" class="headerlink" title="2.2 原理"></a>2.2 原理</h3><p>类委托编译后生成：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoggingPrinter</span> <span class="keyword">implements</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Printer inner;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">print</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="comment">// 如果覆写了，则用覆写；否则自动转发</span></span><br><span class="line">        inner.print(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>自动生成所有接口方法。</li>
+<li>只覆写需要增强的方法。</li>
+<li>委托对象可以是构造参数。</li>
+<li>支持多个接口委托。</li>
+</ul>
+<h3 id="2-3-适用场景"><a href="#2-3-适用场景" class="headerlink" title="2.3 适用场景"></a>2.3 适用场景</h3><ul>
+<li>装饰器模式（日志、缓存、监控）。</li>
+<li>组合优于继承。</li>
+<li>包装第三方库。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CachedRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> delegate: Repository</span><br><span class="line">) : Repository <span class="keyword">by</span> delegate &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> cache = mutableMapOf&lt;<span class="built_in">Long</span>, User&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUser</span><span class="params">(id: <span class="type">Long</span>)</span></span>: User? &#123;</span><br><span class="line">        <span class="keyword">return</span> cache[id] ?: delegate.getUser(id)?.also &#123; cache[id] = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、属性委托-vs-类委托"><a href="#三、属性委托-vs-类委托" class="headerlink" title="三、属性委托 vs 类委托"></a>三、属性委托 vs 类委托</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>属性委托</th>
+<th>类委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用对象</td>
+<td>单个属性</td>
+<td>整个接口实现</td>
+</tr>
+<tr>
+<td>关键字</td>
+<td><code>by</code> 在属性声明处</td>
+<td><code>by</code> 在类声明处</td>
+</tr>
+<tr>
+<td>实现方式</td>
+<td><code>getValue</code> &#x2F; <code>setValue</code></td>
+<td>自动转发接口方法</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td><code>lazy</code>、<code>observable</code>、<code>vetoable</code></td>
+<td>装饰器、组合复用</td>
+</tr>
+<tr>
+<td>编译产物</td>
+<td>委托字段 + 转发访问器</td>
+<td>转发方法</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、委托与-lateinit、lazy-对比"><a href="#四、委托与-lateinit、lazy-对比" class="headerlink" title="四、委托与 lateinit、lazy 对比"></a>四、委托与 <code>lateinit</code>、<code>lazy</code> 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>lateinit</code></th>
+<th><code>by lazy</code></th>
+<th>自定义委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用类型</td>
+<td>非空引用类型</td>
+<td>任意</td>
+<td>任意</td>
+</tr>
+<tr>
+<td>可变性</td>
+<td><code>var</code></td>
+<td><code>val</code></td>
+<td><code>var</code>&#x2F;<code>val</code></td>
+</tr>
+<tr>
+<td>初始化时机</td>
+<td>手动赋值</td>
+<td>首次访问</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>否</td>
+<td>可配置</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否重置</td>
+<td>否</td>
+<td>否</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否用于基本类型</td>
+<td>否</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、委托在-Android-中的典型应用"><a href="#五、委托在-Android-中的典型应用" class="headerlink" title="五、委托在 Android 中的典型应用"></a>五、委托在 Android 中的典型应用</h2><h3 id="5-1-viewModels、activityViewModels"><a href="#5-1-viewModels、activityViewModels" class="headerlink" title="5.1 viewModels、activityViewModels"></a>5.1 <code>viewModels</code>、<code>activityViewModels</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> viewModel: MyViewModel <span class="keyword">by</span> viewModels()</span><br></pre></td></tr></table></figure>
+
+<p><code>viewModels</code> 是属性委托，延迟获取 ViewModel。</p>
+<h3 id="5-2-SharedPreferences-委托"><a href="#5-2-SharedPreferences-委托" class="headerlink" title="5.2 SharedPreferences 委托"></a>5.2 <code>SharedPreferences</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> SharedPreferences.<span class="title">stringPref</span><span class="params">(key: <span class="type">String</span>, default: <span class="type">String</span> = <span class="string">&quot;&quot;</span>)</span></span> =</span><br><span class="line">    <span class="keyword">object</span> : ReadWriteProperty&lt;Any, String&gt; &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span> = getString(key, default) ?: default</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">            edit().putString(key, value).apply()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-arguments-委托"><a href="#5-3-arguments-委托" class="headerlink" title="5.3 arguments 委托"></a>5.3 <code>arguments</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> userId: String <span class="keyword">by</span> arguments.getString(<span class="string">&quot;userId&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-Compose-中的-by-remember"><a href="#5-4-Compose-中的-by-remember" class="headerlink" title="5.4 Compose 中的 by remember"></a>5.4 Compose 中的 <code>by remember</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> count <span class="keyword">by</span> remember &#123; mutableStateOf(<span class="number">0</span>) &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>by</code> 是委托，<code>MutableState</code> 提供 <code>getValue/setValue</code>。</p>
+<hr>
+<h2 id="六、常见面试题与答案"><a href="#六、常见面试题与答案" class="headerlink" title="六、常见面试题与答案"></a>六、常见面试题与答案</h2><p><strong>Q1：Kotlin 委托是什么？</strong><br>A：把职责转交给其他对象，分属性委托和类委托。属性委托把 <code>get/set</code> 委托给 <code>getValue/setValue</code>；类委托把接口实现转发给另一个对象。</p>
+<p><strong>Q2：属性委托需要实现什么？</strong><br>A：<code>val</code> 需要 <code>getValue</code>；<code>var</code> 需要 <code>getValue</code> 和 <code>setValue</code>。可实现 <code>ReadOnlyProperty</code> &#x2F; <code>ReadWriteProperty</code>。</p>
+<p><strong>Q3：<code>by lazy</code> 是线程安全的吗？</strong><br>A：默认 <code>SYNCHRONIZED</code> 线程安全；可选 <code>PUBLICATION</code>、<code>NONE</code>。</p>
+<p><strong>Q4：<code>by lazy</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>lazy</code> 用于 <code>val</code>，首次访问初始化，可线程安全；<code>lateinit</code> 用于 <code>var</code>，手动赋值，不能用于基本类型。</p>
+<p><strong>Q5：<code>observable</code> 和 <code>vetoable</code> 区别？</strong><br>A：<code>vetoable</code> 的 <code>setValue</code> 返回 <code>Boolean</code>，<code>false</code> 阻止赋值；<code>observable</code> 只通知。</p>
+<p><strong>Q6：类委托底层如何实现？</strong><br>A：编译器生成所有接口方法的转发方法，调用委托对象。</p>
+<p><strong>Q7：类委托和继承区别？</strong><br>A：委托是组合，避免脆弱基类，只暴露接口；继承耦合父类实现。</p>
+<p><strong>Q8：<code>provideDelegate</code> 作用？</strong><br>A：在属性声明时执行额外逻辑，如校验、注入。执行在 <code>getValue/setValue</code> 之前。</p>
+<p><strong>Q9：委托属性编译后长什么样？</strong><br>A：生成委托字段，属性访问转发到 <code>getValue/setValue</code>。</p>
+<p><strong>Q10：Android 中哪些地方用了委托？</strong><br>A：<code>by viewModels()</code>、<code>by arguments</code>、<code>by remember</code>、<code>SharedPreferences</code> 委托。</p>
+<p><strong>Q11：属性委托能用于局部变量吗？</strong><br>A：能，Kotlin 1.1+ 支持局部委托变量。</p>
+<p><strong>Q12：<code>Delegates.notNull</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>notNull</code> 支持基本类型，<code>lateinit</code> 不支持；<code>notNull</code> 是委托，<code>lateinit</code> 是语言特性。</p>
+<hr>
+<h2 id="七、完整示例"><a href="#七、完整示例" class="headerlink" title="七、完整示例"></a>七、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; _, old, new -&gt;</span><br><span class="line">        println(<span class="string">&quot;name: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, _, new -&gt; new &gt;= <span class="number">0</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Long</span> <span class="keyword">by</span> lazy &#123; System.currentTimeMillis() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User()</span><br><span class="line">    user.name = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    user.age = -<span class="number">1</span> <span class="comment">// 拒绝</span></span><br><span class="line">    println(user.id)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><ul>
+<li>委托是 Kotlin 替代继承、实现组合复用的核心机制。</li>
+<li>属性委托：<code>lazy</code>、<code>observable</code>、<code>vetoable</code>、<code>notNull</code>、自定义。</li>
+<li>类委托：<code>class Derived(base: Base) : Base by base</code>，自动转发接口。</li>
+<li>编译原理：属性委托生成委托字段和转发访问器；类委托生成转发方法。</li>
+<li>Android 中大量使用：<code>viewModels</code>、<code>arguments</code>、<code>remember</code>、SharedPreferences。</li>
+<li>面试高频：<code>lazy</code> 线程安全、<code>observable</code> vs <code>vetoable</code>、<code>provideDelegate</code>、类委托与继承区别。</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin中的数字类型的相等性</title>
+    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
+    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
+<ul>
+<li>结构型相等(&#x3D;&#x3D;)</li>
+<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
+</ul>
+<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
+<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
+<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
+<ul>
+<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
+<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
+<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
+</ul>
+<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
+<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
+<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
+<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
+<p><strong>1、数字类型始终和自身相等</strong></p>
+<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
+<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
+<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
+<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
+<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
+<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
+<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
+<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
+<p><strong>5、值相等的数字，满足结构型相等</strong></p>
+<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
+<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<ul>
+<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
+<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
+<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+</ul>
+<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
+<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
+<ul>
+<li>认为 NaN 与其自身相等</li>
+<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
+<li>认为 -0.0 小于 0.0</li>
+</ul>
+<p>IEEE 754中对于浮点数比较的定义</p>
+<blockquote>
+<p> <strong>浮点数的比较</strong></p>
+<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
+<p> <strong>标准运算</strong></p>
+<p> 下述函数必须提供:</p>
+<p>……</p>
+<ul>
+<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
+<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
+</ul>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Git常用命令</title>
     <url>/2017/06/08/003-git/</url>
     <content><![CDATA[<p><em>本文出处<a href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#105;&#x74;&#64;&#x67;&#x69;&#x74;&#104;&#x75;&#x62;&#x2e;&#x63;&#111;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#105;&#116;&#64;&#103;&#105;&#116;&#104;&#x75;&#98;&#x2e;&#99;&#x6f;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
@@ -548,81 +826,6 @@
       </categories>
       <tags>
         <tag>git</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kotlin中的数字类型的相等性</title>
-    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
-    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
-<ul>
-<li>结构型相等(&#x3D;&#x3D;)</li>
-<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
-</ul>
-<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
-<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
-<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
-<ul>
-<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
-<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
-<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
-</ul>
-<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
-<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
-<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
-<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
-<p><strong>1、数字类型始终和自身相等</strong></p>
-<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
-<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
-<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
-<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
-<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
-<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
-<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
-<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
-<p><strong>5、值相等的数字，满足结构型相等</strong></p>
-<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
-<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
-<ul>
-<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
-<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
-<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
-</ul>
-<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
-<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
-<ul>
-<li>认为 NaN 与其自身相等</li>
-<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
-<li>认为 -0.0 小于 0.0</li>
-</ul>
-<p>IEEE 754中对于浮点数比较的定义</p>
-<blockquote>
-<p> <strong>浮点数的比较</strong></p>
-<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
-<p> <strong>标准运算</strong></p>
-<p> 下述函数必须提供:</p>
-<p>……</p>
-<ul>
-<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
-<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
-</ul>
-</blockquote>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Kotlin</tag>
       </tags>
   </entry>
   <entry>

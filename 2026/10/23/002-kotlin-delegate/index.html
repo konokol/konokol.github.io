@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"konokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Kotlin 的委托是一种将职责转交给其他对象的机制，分为属性委托和类委托，委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin 委托（Delegation）详解">
+<meta property="og:url" content="http://konokol.github.io/2026/10/23/002-kotlin-delegate/index.html">
+<meta property="og:site_name" content="リグンさん">
+<meta property="og:description" content="Kotlin 的委托是一种将职责转交给其他对象的机制，分为属性委托和类委托，委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-23T13:46:31.000Z">
+<meta property="article:modified_time" content="2026-10-23T13:55:55.000Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://konokol.github.io/2026/10/23/002-kotlin-delegate/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2026/10/23/002-kotlin-delegate/","path":"2026/10/23/002-kotlin-delegate/","title":"Kotlin 委托（Delegation）详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin 委托（Delegation）详解 | リグンさん</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">リグンさん</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%B1%9E%E6%80%A7%E5%A7%94%E6%89%98"><span class="nav-number">1.</span> <span class="nav-text">一、属性委托</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 基本语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E6%A0%87%E5%87%86%E5%A7%94%E6%89%98"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 标准委托</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#by-lazy"><span class="nav-number">1.2.1.</span> <span class="nav-text">by lazy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#by-observable"><span class="nav-number">1.2.2.</span> <span class="nav-text">by observable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#by-vetoable"><span class="nav-number">1.2.3.</span> <span class="nav-text">by vetoable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#by-notNull"><span class="nav-number">1.2.4.</span> <span class="nav-text">by notNull</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B1%9E%E6%80%A7%E5%A7%94%E6%89%98"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 自定义属性委托</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">1.4 编译原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E5%A7%94%E6%89%98%E7%9A%84-provideDelegate"><span class="nav-number">1.5.</span> <span class="nav-text">1.5 委托的 provideDelegate</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E7%B1%BB%E5%A7%94%E6%89%98"><span class="nav-number">2.</span> <span class="nav-text">二、类委托</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 基本语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 适用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%B1%9E%E6%80%A7%E5%A7%94%E6%89%98-vs-%E7%B1%BB%E5%A7%94%E6%89%98"><span class="nav-number">3.</span> <span class="nav-text">三、属性委托 vs 类委托</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%A7%94%E6%89%98%E4%B8%8E-lateinit%E3%80%81lazy-%E5%AF%B9%E6%AF%94"><span class="nav-number">4.</span> <span class="nav-text">四、委托与 lateinit、lazy 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%A7%94%E6%89%98%E5%9C%A8-Android-%E4%B8%AD%E7%9A%84%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">五、委托在 Android 中的典型应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-viewModels%E3%80%81activityViewModels"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 viewModels、activityViewModels</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-SharedPreferences-%E5%A7%94%E6%89%98"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 SharedPreferences 委托</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-arguments-%E5%A7%94%E6%89%98"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 arguments 委托</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-Compose-%E4%B8%AD%E7%9A%84-by-remember"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 Compose 中的 by remember</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E7%AD%94%E6%A1%88"><span class="nav-number">6.</span> <span class="nav-text">六、常见面试题与答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="nav-number">7.</span> <span class="nav-text">七、完整示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">八、总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/konokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;konokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/ivanjlee" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;ivanjlee" rel="noopener me" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://konokol.github.io/2026/10/23/002-kotlin-delegate/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin 委托（Delegation）详解 | リグンさん">
+      <meta itemprop="description" content="Kotlin 的委托是一种将职责转交给其他对象的机制，分为属性委托和类委托，委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin 委托（Delegation）详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-23 21:46:31 / 修改时间：21:55:55" itemprop="dateCreated datePublished" datetime="2026-10-23T21:46:31+08:00">2026-10-23</time>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">Kotlin 的委托是一种将职责转交给其他对象的机制，分为属性委托和类委托，委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Kotlin 的委托是一种<strong>将职责转交给其他对象</strong>的机制，分为两大类：</p>
+<ul>
+<li><strong>属性委托（Property Delegation）</strong>：把属性的 <code>get</code> &#x2F; <code>set</code> 委托给另一个对象。</li>
+<li><strong>类委托（Class Delegation）</strong>：把接口的实现委托给另一个对象。</li>
+</ul>
+<p>委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。</p>
+<hr>
+<h2 id="一、属性委托"><a href="#一、属性委托" class="headerlink" title="一、属性委托"></a>一、属性委托</h2><h3 id="1-1-基本语法"><a href="#1-1-基本语法" class="headerlink" title="1.1 基本语法"></a>1.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span>/<span class="keyword">var</span> &lt;属性名&gt;: &lt;类型&gt; <span class="keyword">by</span> &lt;委托对象&gt;</span><br></pre></td></tr></table></figure>
+
+<p>委托对象必须提供：</p>
+<ul>
+<li><code>getValue</code>：用于 <code>val</code> 和 <code>var</code></li>
+<li><code>setValue</code>：仅用于 <code>var</code></li>
+</ul>
+<p>这两个方法可以是成员函数，也可以是扩展函数。</p>
+<h3 id="1-2-标准委托"><a href="#1-2-标准委托" class="headerlink" title="1.2 标准委托"></a>1.2 标准委托</h3><p>Kotlin 标准库提供三种常用属性委托：</p>
+<h4 id="by-lazy"><a href="#by-lazy" class="headerlink" title="by lazy"></a><code>by lazy</code></h4><p>延迟初始化，首次访问时计算，之后缓存。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lazyValue: String <span class="keyword">by</span> lazy &#123;</span><br><span class="line">    println(<span class="string">&quot;computed!&quot;</span>)</span><br><span class="line">    <span class="string">&quot;Hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println(lazyValue) <span class="comment">// computed! Hello</span></span><br><span class="line">println(lazyValue) <span class="comment">// Hello（不重复计算）</span></span><br></pre></td></tr></table></figure>
+
+<p>线程安全模式：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.SYNCHRONIZED) &#123; ... &#125; <span class="comment">// 默认，双重检查锁</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.PUBLICATION) &#123; ... &#125;  <span class="comment">// 多线程可多次初始化，保留一个</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.NONE) &#123; ... &#125;         <span class="comment">// 无锁，单线程</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：单例、昂贵对象初始化、Android 中初始化 Adapter、ViewModel。</p>
+<h4 id="by-observable"><a href="#by-observable" class="headerlink" title="by observable"></a><code>by observable</code></h4><p>属性变化时回调旧值和新值。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; property, old, new -&gt;</span><br><span class="line">    println(<span class="string">&quot;<span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;Alice&quot;</span> <span class="comment">// name: init -&gt; Alice</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="by-vetoable"><a href="#by-vetoable" class="headerlink" title="by vetoable"></a><code>by vetoable</code></h4><p>属性变化时回调，返回 <code>false</code> 可阻止赋值。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, old, new -&gt;</span><br><span class="line">    new &gt;= <span class="number">0</span> <span class="comment">// 负数拒绝赋值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="by-notNull"><a href="#by-notNull" class="headerlink" title="by notNull"></a><code>by notNull</code></h4><p>用于替代 <code>lateinit</code>，支持非空类型，但可检查是否初始化。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.notNull()</span><br><span class="line"><span class="comment">// println(name) // 抛 IllegalStateException</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：Android 中 <code>lateinit</code> 无法用于基本类型时。</p>
+<h3 id="1-3-自定义属性委托"><a href="#1-3-自定义属性委托" class="headerlink" title="1.3 自定义属性委托"></a>1.3 自定义属性委托</h3><p>实现 <code>ReadWriteProperty</code> 或 <code>ReadOnlyProperty</code> 接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingProperty</span>&lt;<span class="type">T</span>&gt;(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> value: T</span><br><span class="line">) : ReadWriteProperty&lt;Any?, T&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T &#123;</span><br><span class="line">        println(<span class="string">&quot;get <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;set <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span> -&gt; <span class="variable">$newValue</span>&quot;</span>)</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>也可以直接写 <code>getValue</code> &#x2F; <code>setValue</code> 的 <code>operator</code> 方法（不实现接口）：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SimpleDelegate</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">var</span> value: T) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T = value</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-编译原理"><a href="#1-4-编译原理" class="headerlink" title="1.4 编译原理"></a>1.4 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LoggingProperty</span> <span class="variable">name$delegate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoggingProperty</span>(<span class="string">&quot;init&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> name$delegate.getValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">setName</span><span class="params">(String value)</span> &#123;</span><br><span class="line">    name$delegate.setValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>], value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个委托对象字段。</li>
+<li>属性访问转发到 <code>getValue</code> &#x2F; <code>setValue</code>。</li>
+<li><code>$$delegatedProperties</code> 是 <code>KProperty</code> 数组，缓存属性元信息。</li>
+</ul>
+<h3 id="1-5-委托的-provideDelegate"><a href="#1-5-委托的-provideDelegate" class="headerlink" title="1.5 委托的 provideDelegate"></a>1.5 委托的 <code>provideDelegate</code></h3><p>在属性声明时执行额外逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceDelegate</span> &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">provideDelegate</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: ResourceDelegate &#123;</span><br><span class="line">        println(<span class="string">&quot;creating delegate for <span class="subst">$&#123;property.name&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: String = <span class="string">&quot;value&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> x: String <span class="keyword">by</span> ResourceDelegate()</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行顺序</strong>：<code>provideDelegate</code> → <code>getValue</code> &#x2F; <code>setValue</code>。</p>
+<p><strong>适用场景</strong>：属性名校验、依赖注入、资源绑定。</p>
+<hr>
+<h2 id="二、类委托"><a href="#二、类委托" class="headerlink" title="二、类委托"></a>二、类委托</h2><h3 id="2-1-基本语法"><a href="#2-1-基本语法" class="headerlink" title="2.1 基本语法"></a>2.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span>(<span class="keyword">private</span> <span class="keyword">val</span> base: Base) : Base <span class="keyword">by</span> base</span><br></pre></td></tr></table></figure>
+
+<p>编译器自动生成所有接口方法的转发实现。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConsolePrinter</span> : <span class="type">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingPrinter</span>(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">inner</span>: Printer) : Printer <span class="keyword">by</span> <span class="keyword">inner</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Before&quot;</span>)</span><br><span class="line">        <span class="keyword">inner</span>.print(msg)</span><br><span class="line">        println(<span class="string">&quot;After&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-原理"><a href="#2-2-原理" class="headerlink" title="2.2 原理"></a>2.2 原理</h3><p>类委托编译后生成：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoggingPrinter</span> <span class="keyword">implements</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Printer inner;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">print</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="comment">// 如果覆写了，则用覆写；否则自动转发</span></span><br><span class="line">        inner.print(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>自动生成所有接口方法。</li>
+<li>只覆写需要增强的方法。</li>
+<li>委托对象可以是构造参数。</li>
+<li>支持多个接口委托。</li>
+</ul>
+<h3 id="2-3-适用场景"><a href="#2-3-适用场景" class="headerlink" title="2.3 适用场景"></a>2.3 适用场景</h3><ul>
+<li>装饰器模式（日志、缓存、监控）。</li>
+<li>组合优于继承。</li>
+<li>包装第三方库。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CachedRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> delegate: Repository</span><br><span class="line">) : Repository <span class="keyword">by</span> delegate &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> cache = mutableMapOf&lt;<span class="built_in">Long</span>, User&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUser</span><span class="params">(id: <span class="type">Long</span>)</span></span>: User? &#123;</span><br><span class="line">        <span class="keyword">return</span> cache[id] ?: delegate.getUser(id)?.also &#123; cache[id] = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、属性委托-vs-类委托"><a href="#三、属性委托-vs-类委托" class="headerlink" title="三、属性委托 vs 类委托"></a>三、属性委托 vs 类委托</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>属性委托</th>
+<th>类委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用对象</td>
+<td>单个属性</td>
+<td>整个接口实现</td>
+</tr>
+<tr>
+<td>关键字</td>
+<td><code>by</code> 在属性声明处</td>
+<td><code>by</code> 在类声明处</td>
+</tr>
+<tr>
+<td>实现方式</td>
+<td><code>getValue</code> &#x2F; <code>setValue</code></td>
+<td>自动转发接口方法</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td><code>lazy</code>、<code>observable</code>、<code>vetoable</code></td>
+<td>装饰器、组合复用</td>
+</tr>
+<tr>
+<td>编译产物</td>
+<td>委托字段 + 转发访问器</td>
+<td>转发方法</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、委托与-lateinit、lazy-对比"><a href="#四、委托与-lateinit、lazy-对比" class="headerlink" title="四、委托与 lateinit、lazy 对比"></a>四、委托与 <code>lateinit</code>、<code>lazy</code> 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>lateinit</code></th>
+<th><code>by lazy</code></th>
+<th>自定义委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用类型</td>
+<td>非空引用类型</td>
+<td>任意</td>
+<td>任意</td>
+</tr>
+<tr>
+<td>可变性</td>
+<td><code>var</code></td>
+<td><code>val</code></td>
+<td><code>var</code>&#x2F;<code>val</code></td>
+</tr>
+<tr>
+<td>初始化时机</td>
+<td>手动赋值</td>
+<td>首次访问</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>否</td>
+<td>可配置</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否重置</td>
+<td>否</td>
+<td>否</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否用于基本类型</td>
+<td>否</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、委托在-Android-中的典型应用"><a href="#五、委托在-Android-中的典型应用" class="headerlink" title="五、委托在 Android 中的典型应用"></a>五、委托在 Android 中的典型应用</h2><h3 id="5-1-viewModels、activityViewModels"><a href="#5-1-viewModels、activityViewModels" class="headerlink" title="5.1 viewModels、activityViewModels"></a>5.1 <code>viewModels</code>、<code>activityViewModels</code></h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> viewModel: MyViewModel <span class="keyword">by</span> viewModels()</span><br></pre></td></tr></table></figure>
+
+<p><code>viewModels</code> 是属性委托，延迟获取 ViewModel。</p>
+<h3 id="5-2-SharedPreferences-委托"><a href="#5-2-SharedPreferences-委托" class="headerlink" title="5.2 SharedPreferences 委托"></a>5.2 <code>SharedPreferences</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> SharedPreferences.<span class="title">stringPref</span><span class="params">(key: <span class="type">String</span>, default: <span class="type">String</span> = <span class="string">&quot;&quot;</span>)</span></span> =</span><br><span class="line">    <span class="keyword">object</span> : ReadWriteProperty&lt;Any, String&gt; &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span> = getString(key, default) ?: default</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">            edit().putString(key, value).apply()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-arguments-委托"><a href="#5-3-arguments-委托" class="headerlink" title="5.3 arguments 委托"></a>5.3 <code>arguments</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> userId: String <span class="keyword">by</span> arguments.getString(<span class="string">&quot;userId&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-Compose-中的-by-remember"><a href="#5-4-Compose-中的-by-remember" class="headerlink" title="5.4 Compose 中的 by remember"></a>5.4 Compose 中的 <code>by remember</code></h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> count <span class="keyword">by</span> remember &#123; mutableStateOf(<span class="number">0</span>) &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>by</code> 是委托，<code>MutableState</code> 提供 <code>getValue/setValue</code>。</p>
+<hr>
+<h2 id="六、常见面试题与答案"><a href="#六、常见面试题与答案" class="headerlink" title="六、常见面试题与答案"></a>六、常见面试题与答案</h2><p><strong>Q1：Kotlin 委托是什么？</strong><br>A：把职责转交给其他对象，分属性委托和类委托。属性委托把 <code>get/set</code> 委托给 <code>getValue/setValue</code>；类委托把接口实现转发给另一个对象。</p>
+<p><strong>Q2：属性委托需要实现什么？</strong><br>A：<code>val</code> 需要 <code>getValue</code>；<code>var</code> 需要 <code>getValue</code> 和 <code>setValue</code>。可实现 <code>ReadOnlyProperty</code> &#x2F; <code>ReadWriteProperty</code>。</p>
+<p><strong>Q3：<code>by lazy</code> 是线程安全的吗？</strong><br>A：默认 <code>SYNCHRONIZED</code> 线程安全；可选 <code>PUBLICATION</code>、<code>NONE</code>。</p>
+<p><strong>Q4：<code>by lazy</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>lazy</code> 用于 <code>val</code>，首次访问初始化，可线程安全；<code>lateinit</code> 用于 <code>var</code>，手动赋值，不能用于基本类型。</p>
+<p><strong>Q5：<code>observable</code> 和 <code>vetoable</code> 区别？</strong><br>A：<code>vetoable</code> 的 <code>setValue</code> 返回 <code>Boolean</code>，<code>false</code> 阻止赋值；<code>observable</code> 只通知。</p>
+<p><strong>Q6：类委托底层如何实现？</strong><br>A：编译器生成所有接口方法的转发方法，调用委托对象。</p>
+<p><strong>Q7：类委托和继承区别？</strong><br>A：委托是组合，避免脆弱基类，只暴露接口；继承耦合父类实现。</p>
+<p><strong>Q8：<code>provideDelegate</code> 作用？</strong><br>A：在属性声明时执行额外逻辑，如校验、注入。执行在 <code>getValue/setValue</code> 之前。</p>
+<p><strong>Q9：委托属性编译后长什么样？</strong><br>A：生成委托字段，属性访问转发到 <code>getValue/setValue</code>。</p>
+<p><strong>Q10：Android 中哪些地方用了委托？</strong><br>A：<code>by viewModels()</code>、<code>by arguments</code>、<code>by remember</code>、<code>SharedPreferences</code> 委托。</p>
+<p><strong>Q11：属性委托能用于局部变量吗？</strong><br>A：能，Kotlin 1.1+ 支持局部委托变量。</p>
+<p><strong>Q12：<code>Delegates.notNull</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>notNull</code> 支持基本类型，<code>lateinit</code> 不支持；<code>notNull</code> 是委托，<code>lateinit</code> 是语言特性。</p>
+<hr>
+<h2 id="七、完整示例"><a href="#七、完整示例" class="headerlink" title="七、完整示例"></a>七、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; _, old, new -&gt;</span><br><span class="line">        println(<span class="string">&quot;name: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, _, new -&gt; new &gt;= <span class="number">0</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Long</span> <span class="keyword">by</span> lazy &#123; System.currentTimeMillis() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User()</span><br><span class="line">    user.name = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    user.age = -<span class="number">1</span> <span class="comment">// 拒绝</span></span><br><span class="line">    println(user.id)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><ul>
+<li>委托是 Kotlin 替代继承、实现组合复用的核心机制。</li>
+<li>属性委托：<code>lazy</code>、<code>observable</code>、<code>vetoable</code>、<code>notNull</code>、自定义。</li>
+<li>类委托：<code>class Derived(base: Base) : Base by base</code>，自动转发接口。</li>
+<li>编译原理：属性委托生成委托字段和转发访问器；类委托生成转发方法。</li>
+<li>Android 中大量使用：<code>viewModels</code>、<code>arguments</code>、<code>remember</code>、SharedPreferences。</li>
+<li>面试高频：<code>lazy</code> 线程安全、<code>observable</code> vs <code>vetoable</code>、<code>provideDelegate</code>、类委托与继承区别。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/03/000-cs-processes-and-threads/" rel="prev" title="进程与线程">
+                  <i class="fa fa-angle-left"></i> 进程与线程
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/konokol" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
