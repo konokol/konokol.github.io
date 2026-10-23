@@ -194,8 +194,7 @@ social:
   #Instagram: https://www.instagram.com/ivan_j.lee/ || fab fa-instagram
   #Skype: skype:yourname?call|chat || fab fa-skype
   Weibo: https://weibo.com/dutlijun || fab fa-weibo
-  # Zhihu: https://www.zhihu.com/people/ivanjlee || fab fa-zhihu
-  Zhihu: https://zhihu.com || fa-brands fa-zhihu
+  Zhihu: https://www.zhihu.com/people/ivanjlee || fab fa-zhihu
 
 social_icons:
   enable: true
