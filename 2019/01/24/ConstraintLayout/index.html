@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kinokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用ConstraintLayout构建响应式布局">
+<meta property="og:url" content="http://kinokol.github.io/2019/01/24/ConstraintLayout/index.html">
+<meta property="og:site_name" content="リグンさん">
+<meta property="og:description" content="使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/afdaace3ly1fnqswt7oohj20ko1240yx.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtars5vij21aa124n0c.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtjpiz20j21ae124adv.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtmbpbvij200w00w047.jpg">
+<meta property="article:published_time" content="2019-01-24T12:04:05.000Z">
+<meta property="article:modified_time" content="2026-10-23T01:35:28.168Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ww1.sinaimg.cn/large/afdaace3ly1fnqswt7oohj20ko1240yx.jpg">
+
+
+<link rel="canonical" href="http://kinokol.github.io/2019/01/24/ConstraintLayout/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://kinokol.github.io/2019/01/24/ConstraintLayout/","path":"2019/01/24/ConstraintLayout/","title":"使用ConstraintLayout构建响应式布局"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>使用ConstraintLayout构建响应式布局 | リグンさん</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+  <script class="next-config" data-name="leancloud_visitors" type="application/json">{"enable":true,"app_id":"ORwFgt6n4M1M4kImU9jeng8r-gzGzoHsz","app_key":"JaNwYN0AunMTWBdMAg3wxNiu","server_url":"https://leancloud.cn","security":false}</script>
+  <script src="/js/third-party/statistics/lean-analytics.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">リグンさん</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">1 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%BA%A6%E6%9D%9F%E9%A2%84%E8%A7%88"><span class="nav-number">2.</span> <span class="nav-text">2 约束预览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEConstraintLayout"><span class="nav-number">3.</span> <span class="nav-text">3 配置ConstraintLayout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%9C%A8%E9%A1%B9%E7%9B%AE%E4%B8%AD%E4%BD%BF%E7%94%A8ConstraintLayout"><span class="nav-number">4.</span> <span class="nav-text">4 在项目中使用ConstraintLayout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%AE%9E%E6%88%98%E7%BB%83%E4%B9%A0"><span class="nav-number">5.</span> <span class="nav-text">5 实战练习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E6%B7%BB%E5%8A%A0%E7%9B%B8%E5%AF%B9%E4%BA%8E%E7%88%B6%E5%B8%83%E5%B1%80%E7%9A%84%E4%BD%8D%E7%BD%AE%E7%BA%A6%E6%9D%9F"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 添加相对于父布局的位置约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E6%B7%BB%E5%8A%A0%E7%9B%B8%E5%AF%B9%E4%BA%8E%E5%85%84%E5%BC%9FView%E7%9A%84%E4%BD%8D%E7%BD%AE%E7%BA%A6%E6%9D%9F"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 添加相对于兄弟View的位置约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E6%B7%BB%E5%8A%A0%E5%AF%B9%E9%BD%90%E6%96%B9%E5%BC%8F"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 添加对齐方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E5%88%A0%E9%99%A4%E7%BA%A6%E6%9D%9F"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 删除约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E7%9B%B8%E5%AF%B9%E4%BA%8Eguideline%E7%9A%84%E7%BA%A6%E6%9D%9F"><span class="nav-number">5.5.</span> <span class="nav-text">5.5 相对于guideline的约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-%E6%B7%BB%E5%8A%A0%E7%9B%B8%E5%AF%B9%E4%BA%8EView%E7%9A%84barrie"><span class="nav-number">5.6.</span> <span class="nav-text">5.6 添加相对于View的barrie</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-7-%E8%B0%83%E8%8A%82%E7%BA%A6%E6%9D%9F%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">5.7.</span> <span class="nav-text">5.7 调节约束的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-8-%E8%B0%83%E8%8A%82View%E7%9A%84%E5%A4%A7%E5%B0%8F"><span class="nav-number">5.8.</span> <span class="nav-text">5.8 调节View的大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-9-%E9%93%BE%E5%BC%8F%E7%BA%BF%E6%80%A7%E5%88%86%E7%BB%84"><span class="nav-number">5.9.</span> <span class="nav-text">5.9 链式线性分组</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kinokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kinokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/dutlijun" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;dutlijun" rel="noopener me" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://zhihu.com/" title="Zhihu → https:&#x2F;&#x2F;zhihu.com" rel="noopener me" target="_blank"><i class="fa-brands fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://kinokol.github.io/2019/01/24/ConstraintLayout/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="使用ConstraintLayout构建响应式布局 | リグンさん">
+      <meta itemprop="description" content="使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用ConstraintLayout构建响应式布局
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-01-24 20:04:05" itemprop="dateCreated datePublished" datetime="2019-01-24T20:04:05+08:00">2019-01-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-10-23 09:35:28" itemprop="dateModified" datetime="2026-10-23T09:35:28+08:00">2026-10-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/tech/" itemprop="url" rel="index"><span itemprop="name">tech</span></a>
+        </span>
+    </span>
+
+  
+    <span id="/2019/01/24/ConstraintLayout/" class="post-meta-item leancloud_visitors" data-flag-title="使用ConstraintLayout构建响应式布局" title="Views">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+</div>
+
+            <div class="post-description">使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1 简介"></a>1 简介</h2><blockquote>
+<p>使用ContraintLayout能够使用平铺的布局方式（没有层级嵌套）创建大而复杂的布局。和RelativeLayout类似，ConstraintLayout所有的View都在同一层级中，但是它比RelativeLayout使用起来更加灵活，结合Android Studio的布局编辑器，使用起来也更加简单。</p>
+<p>ContraintLayout的API和Android Studio的布局编辑器的图形化工具是相辅相成的，通过布局编辑器的图形化工具，可以直接使用ConstraintLayout的全部特性。在使用ConstraintLayout时，可以直接拖拽进行布局，完全不用编辑xml。</p>
+<p>ConstraintLayout支持Android 2.3(API 9)以上，本文是在Android Studio 3.0及以上版本中使用ConstraintLayout的教程，如果想要了解Android Studio中更多关于布局编辑器的内容，可以参考官网<a target="_blank" rel="noopener" href="https://developer.android.com/studio/write/layout-editor.html">Build a UI with Layout Editor</a>。</p>
+<p>如果想要看ConstraintLayout的Demo，可以去GitHub上围观：<a target="_blank" rel="noopener" href="https://github.com/googlesamples/android-ConstraintLayoutExamples">https://github.com/googlesamples/android-ConstraintLayoutExamples</a>。</p>
+</blockquote>
+<h2 id="2-约束预览"><a href="#2-约束预览" class="headerlink" title="2 约束预览"></a>2 约束预览</h2><blockquote>
+<p>要确定一个View在ConstraintLayout中的位置，至少需要指定一个水平或者垂直的约束。每一个约束都代表了一个View和其它的View，其父View或者不可见的基准线之间的联系或者对齐关系。每一个约束都定义了View相对于横轴和纵轴的位置，因此，确定一个View的位置必须至少相对于横轴和纵轴各指定一个约束，通常来说，我们需要指定的约束会有多个。</p>
+<p>在Android Studio中，当把一个View拖到布局编辑器中的时候，这个View一般会显示在你拖动的位置，但是这仅仅是为了便于我们编辑，如果一个View一个约束也没有，那它会显示在坐标[0, 0]的位置，即左上角。</p>
+</blockquote>
+<p>比如下面的两种情况：</p>
+<center>
+![图1 A和C没有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf0fiigij20cw068dfr.jpg)</br>
+图1 A和C没有约束
+</center>
+
+<center>
+![图2 A和C有约束](http://ww1.sinaimg.cn/large/afdaace3ly1fnpf10sjdgj20cw068dfu.jpg)</br>
+图2 A和C有约束
+</center>
+
+<p>图1中，A和C没有约束关系，尽管在预览时会看到C在A的下方，实际运行时，C会浮到屏幕的最顶端。图2中，加上了A和C的约束(红圈所示)之后，C就会位于A的下方。</p>
+<h2 id="3-配置ConstraintLayout"><a href="#3-配置ConstraintLayout" class="headerlink" title="3 配置ConstraintLayout"></a>3 配置ConstraintLayout</h2><ol>
+<li>maven仓库的配置</li>
+</ol>
+<p> 在最新版本的gradle中，Google迁移了maven仓库，所以需要在项目根目录的build.gradle中添加：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">   maven &#123;</span><br><span class="line">       url &#x27;https://maven.google.com&#x27;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 或者是</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;</span><br><span class="line">       jcenter()</span><br><span class="line">       google()</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>添加gradle最新版本的依赖，目前稳定版本是1.0.2，1.1.0还是beta版。</li>
+</ol>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    compile &#x27;com.android.support.constraint:constraint-layout:1.0.2&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>同步gradle</li>
+</ol>
+<h2 id="4-在项目中使用ConstraintLayout"><a href="#4-在项目中使用ConstraintLayout" class="headerlink" title="4 在项目中使用ConstraintLayout"></a>4 在项目中使用ConstraintLayout</h2><p>在Android Studio 3.0+中，可以把旧的布局转换成ConstraintLayout，也可以在新建Constraint<br>Layout。如果没做特别的配置，使用Android Studio的Activity模版新建Activity时，布局文件根布局会默认是ConstraintLayout。</p>
+<p>将普通布局文件转换成ConstraintLayout：<br>切到Design面板-&gt;打开Component Tree-&gt;右键选中一个Layout，选择Convert XXXLayout to ConstraintLayout；</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqks0e1w4j20n20i5q38.jpg)</br>
+图3 将普通布局转换成Constraint
+Layout</center>
+
+<h2 id="5-实战练习"><a href="#5-实战练习" class="headerlink" title="5 实战练习"></a>5 实战练习</h2><h3 id="5-1-添加相对于父布局的位置约束"><a href="#5-1-添加相对于父布局的位置约束" class="headerlink" title="5.1 添加相对于父布局的位置约束"></a>5.1 添加相对于父布局的位置约束</h3><p>新建一个布局文件，根布局选择为ConstraintLayout，切换到Design面板</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqluzldu4j21ue19sn4v.jpg)</br>
+图4 新建一个的ConstraintLayout
+</center>
+
+<p>拖动一个控件到面板中，此时没有任何约束，会看到控件上报了一个错误，提示没有约束，如果直接运行，这个TextView会显示到屏幕的左上角</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqlxou6m8j21u817ewm2.jpg)
+图5 未添加约束时的警告
+</center>
+
+<p>添加相对于父布局的约束，在一个方向上可以添加一个或者两个约束</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqm9npfx3g20pk0g4172.gif)</br>
+图6 添加左侧的约束
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmn6pigmg20pk0g4atu.gif)</br>
+图7 添加右侧的约束
+</center>
+
+<h3 id="5-2-添加相对于兄弟View的位置约束"><a href="#5-2-添加相对于兄弟View的位置约束" class="headerlink" title="5.2 添加相对于兄弟View的位置约束"></a>5.2 添加相对于兄弟View的位置约束</h3><p>添加相对于其它View的约束，下图中B、C只添加了对A的约束，运行起来后，B贴在屏幕顶部且在A的右边，C贴在屏幕的左侧且位于A的下方。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqmvdktk7j215q0yctb7.jpg)
+</br>
+图7 相对于其它View的约束
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqswt7oohj20ko1240yx.jpg"><br>图8 运行的实际效果</p>
+</center>
+
+<h3 id="5-3-添加对齐方式"><a href="#5-3-添加对齐方式" class="headerlink" title="5.3 添加对齐方式"></a>5.3 添加对齐方式</h3><p>在两个View的同一个方向(水平或垂直)上，把两个View的两条边连接起来即可添加对其约束。添加对其约束之后，laytou_marginXXX等属性仍然会生效。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnp0oot8j215o0y6mzp.jpg)
+</br>
+图9 C与A的左侧对其，B与A的顶部对其且向下偏移16dp
+</center>
+
+<h3 id="5-4-删除约束"><a href="#5-4-删除约束" class="headerlink" title="5.4 删除约束"></a>5.4 删除约束</h3><p>删除约束很简单，选中一个View，鼠标hover在View的一个约束上时，约束会变红，点按即可删除。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqnhkw90vj215q0yedir.jpg)
+</br>
+图10 删除一个约束
+</center>
+
+<h3 id="5-5-相对于guideline的约束"><a href="#5-5-相对于guideline的约束" class="headerlink" title="5.5 相对于guideline的约束"></a>5.5 相对于guideline的约束</h3><p>除了相对于父布局和兄弟View，ConstraintLayout中还可以在水平方向和垂直方向上添加guide，ConstraintLayout内的View可以添加相对于guideline的约束。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqojv5ddcj20r4072my3.jpg)
+</br>
+图11 添加guideline
+</center>
+
+<p>添加的guideline在xml布局中表现和View一样。guideline可以像View一样添加约束。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqoogvy5jj20rg09ctax.jpg)
+</br>
+图12 guideline在xml中的表示
+</center>
+
+<p>添加完guideline之后，选中guideline，在布局的边缘可以看到一个小三角或者百分号，点击可以切换guideline相对于布局编辑的位置，显示为小三角的方向表示guideline距布局边界的绝对位置（单位是dp），百分号则表示相对位置</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqr0whwlmj21ts1acqbo.jpg)
+</br>
+图13 guideline在屏幕垂直方向上20%的位置，A位于guideline的下方
+</center>
+
+<h3 id="5-6-添加相对于View的barrie"><a href="#5-6-添加相对于View的barrie" class="headerlink" title="5.6 添加相对于View的barrie"></a>5.6 添加相对于View的barrie</h3><p>barrier是ConstraintLayout 1.1中新加的特性，barrier和guideline类似，从字面意思可以理解，它相当于一个屏障，包含在其中的View不能越过它的位置。举个例子，图14的布局中，B位于A的右侧，当C位于A的下方，当C的文字比较少时，B会在C的右侧，当C的文字比较多时，C就会被B盖住，但是B左侧的约束又只能有一个。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
+</br>
+图13 C的文字比较少
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtars5vij21aa124n0c.jpg"><br></br><br>图13 C的文字比较多时，B盖住了C</p>
+</center>
+
+
+<p>此时就可以添加一个barrier，在B的左侧添加一个到barrier的约束，使B的位置随着A、C的内容左右移动而不用担心B的内容盖住A。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnqt7ah8toj21a8124mzz.jpg)
+</br>
+图13 C的文字比较少
+
+<p><img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtjpiz20j21ae124adv.jpg"><br></br><br>图14 B添加了相对于barrier的约束</p>
+</center>
+
+<p>添加barrier的方法：</p>
+<blockquote>
+<ol>
+<li>Click Guidelines <img src="http://ww1.sinaimg.cn/large/afdaace3ly1fnqtmbpbvij200w00w047.jpg">in the toolbar, and then click Add Vertical Barrier or Add Horizontal Barrier.</li>
+<li>In the Component Tree window, select the views you want inside the barrier and drag them into the barrier component.</li>
+<li>Select the barrier from the Component Tree, open the Attributes window, and then set the barrierDirection.</li>
+</ol>
+</blockquote>
+<ol>
+<li>点击工具栏添加guideline的位置，添加垂直或者水平的barrier；</li>
+<li>在Component Tree视图中，把想要限制的View拖进barrier中；</li>
+<li>在Component Tree中选中barrier，打开右侧的属性窗口，设置barrierDirection属性。</li>
+</ol>
+<h3 id="5-7-调节约束的位置"><a href="#5-7-调节约束的位置" class="headerlink" title="5.7 调节约束的位置"></a>5.7 调节约束的位置</h3><p>在前面，给View水平方向上添加2个约束时，会发现View自动水平居中了。此时，可以调节ConstraintLayout的bias，使其在屏幕一定比例的位置上，而不是居中。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnk39ur1g21g80p0x6r.gif)
+</br>
+图15 调节约束的位置
+</center>
+
+<h3 id="5-8-调节View的大小"><a href="#5-8-调节View的大小" class="headerlink" title="5.8 调节View的大小"></a>5.8 调节View的大小</h3><p>ConstraintLayout的子View中，除了可以通过正常的layout_width和layout_height来限制View的宽高为，在Design面板的右侧，可以很方便调整View的大小。</p>
+<center>
+![](http://ww1.sinaimg.cn/large/afdaace3ly1fnrnm43y7lj20fr0j9jte.jpg)
+</br>
+图16 调节View的大小
+</center>
+图中的编号中，
+
+<ol>
+<li>调节View的宽高比</li>
+<li>删除某个方向上的约束</li>
+<li>View的宽高模式，Fixed（宽高写死），Wrap Content，Match Constraints（和match parent一样）</li>
+<li>View的margin值</li>
+<li>bias</li>
+</ol>
+<h3 id="5-9-链式线性分组"><a href="#5-9-链式线性分组" class="headerlink" title="5.9 链式线性分组"></a>5.9 链式线性分组</h3><p>在一个链式线性分组内的View会在一个方向上形成一个双向约束，互相约束。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2017/12/27/Java-8_Stream/" rel="prev" title="Java 8函数式数据处理">
+                  <i class="fa fa-angle-left"></i> Java 8函数式数据处理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/02/27/Kotlin-Numbers-Equality/" rel="next" title="Kotlin中的数字类型的相等性">
+                  Kotlin中的数字类型的相等性 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

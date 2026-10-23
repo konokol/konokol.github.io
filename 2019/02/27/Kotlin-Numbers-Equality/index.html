@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kinokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Kotlin中有2种相等性，结构型相等和引用型相等。可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin中的数字类型的相等性">
+<meta property="og:url" content="http://kinokol.github.io/2019/02/27/Kotlin-Numbers-Equality/index.html">
+<meta property="og:site_name" content="リグンさん">
+<meta property="og:description" content="Kotlin中有2种相等性，结构型相等和引用型相等。可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-02-27T06:44:10.000Z">
+<meta property="article:modified_time" content="2026-10-23T01:35:28.169Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://kinokol.github.io/2019/02/27/Kotlin-Numbers-Equality/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://kinokol.github.io/2019/02/27/Kotlin-Numbers-Equality/","path":"2019/02/27/Kotlin-Numbers-Equality/","title":"Kotlin中的数字类型的相等性"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin中的数字类型的相等性 | リグンさん</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+  <script class="next-config" data-name="leancloud_visitors" type="application/json">{"enable":true,"app_id":"ORwFgt6n4M1M4kImU9jeng8r-gzGzoHsz","app_key":"JaNwYN0AunMTWBdMAg3wxNiu","server_url":"https://leancloud.cn","security":false}</script>
+  <script src="/js/third-party/statistics/lean-analytics.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">リグンさん</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>Schedule</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E7%AD%89%E6%80%A7"><span class="nav-number">1.</span> <span class="nav-text">相等性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E7%AD%89%E6%80%A7%E5%88%86%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">相等性分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%9B%B8%E7%AD%89%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">数字类型的相等性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E7%9A%84%E7%9B%B8%E7%AD%89%E6%80%A7"><span class="nav-number">1.2.1.</span> <span class="nav-text">整数的相等性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0%E7%9A%84%E7%9B%B8%E7%AD%89%E6%80%A7"><span class="nav-number">1.2.2.</span> <span class="nav-text">浮点数的相等性</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kinokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kinokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/dutlijun" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;dutlijun" rel="noopener me" target="_blank"><i class="fab fa-weibo fa-fw"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://zhihu.com/" title="Zhihu → https:&#x2F;&#x2F;zhihu.com" rel="noopener me" target="_blank"><i class="fa-brands fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://kinokol.github.io/2019/02/27/Kotlin-Numbers-Equality/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin中的数字类型的相等性 | リグンさん">
+      <meta itemprop="description" content="Kotlin中有2种相等性，结构型相等和引用型相等。可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin中的数字类型的相等性
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-02-27 14:44:10" itemprop="dateCreated datePublished" datetime="2019-02-27T14:44:10+08:00">2019-02-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-10-23 09:35:28" itemprop="dateModified" datetime="2026-10-23T09:35:28+08:00">2026-10-23</time>
+    </span>
+
+  
+    <span id="/2019/02/27/Kotlin-Numbers-Equality/" class="post-meta-item leancloud_visitors" data-flag-title="Kotlin中的数字类型的相等性" title="Views">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+</div>
+
+            <div class="post-description">Kotlin中有2种相等性，结构型相等和引用型相等。可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的==类似。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
+<ul>
+<li>结构型相等(&#x3D;&#x3D;)</li>
+<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
+</ul>
+<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
+<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
+<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
+<ul>
+<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
+<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
+<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
+</ul>
+<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
+<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
+<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
+<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
+<p><strong>1、数字类型始终和自身相等</strong></p>
+<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
+<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
+<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
+<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
+<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
+<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
+<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
+<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
+<p><strong>5、值相等的数字，满足结构型相等</strong></p>
+<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
+<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<ul>
+<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
+<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
+<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+</ul>
+<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
+<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
+<ul>
+<li>认为 NaN 与其自身相等</li>
+<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
+<li>认为 -0.0 小于 0.0</li>
+</ul>
+<p>IEEE 754中对于浮点数比较的定义</p>
+<blockquote>
+<p> <strong>浮点数的比较</strong></p>
+<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
+<p> <strong>标准运算</strong></p>
+<p> 下述函数必须提供:</p>
+<p>……</p>
+<ul>
+<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
+<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
+</ul>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/01/24/ConstraintLayout/" rel="prev" title="使用ConstraintLayout构建响应式布局">
+                  <i class="fa fa-angle-left"></i> 使用ConstraintLayout构建响应式布局
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/08/03/processes-and-threads/" rel="next" title="进程与线程">
+                  进程与线程 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
