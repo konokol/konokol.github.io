@@ -78,13 +78,6 @@ pagination_dir: page
 ## Themes: https://hexo.io/themes/
 theme: next
 
-leancloud_counter_security:
-  enable_sync: true
-  app_id: ORwFgt6n4M1M4kImU9jeng8r-gzGzoHsz #<<your app id>>
-  app_key: JaNwYN0AunMTWBdMAg3wxNiu #<<your app key>
-  username: ivanjlee
-  password:
-
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
@@ -94,7 +87,7 @@ deploy:
   email: lijundut@foxmail.com
   deploy:
   # other deployer
-  - type: leancloud_counter_security_sync
+  # - type: leancloud_counter_security_sync
 
 search:
   path: search.xml
