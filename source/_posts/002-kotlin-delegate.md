@@ -2,6 +2,7 @@
 title: Kotlin 委托（Delegation）详解
 date: 2026-10-23 21:46:31
 tags: Kotlin
+category: Kotlin
 description: Kotlin 的委托是一种将职责转交给其他对象的机制，分为属性委托和类委托，委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。
 ---
 
