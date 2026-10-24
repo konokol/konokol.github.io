@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"konokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Kotlin 可以用 objects 来创建对象，分别是对象声明和对象表达式，语法相似语义不同。一句话记忆，对象声明是单例，对象表达式是匿名内部类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin 对象声明与对象表达式">
+<meta property="og:url" content="http://konokol.github.io/2026/10/24/002-kotlin-objects/index.html">
+<meta property="og:site_name" content="リグンさん">
+<meta property="og:description" content="Kotlin 可以用 objects 来创建对象，分别是对象声明和对象表达式，语法相似语义不同。一句话记忆，对象声明是单例，对象表达式是匿名内部类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-24T02:38:19.000Z">
+<meta property="article:modified_time" content="2026-10-24T02:47:04.000Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://konokol.github.io/2026/10/24/002-kotlin-objects/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2026/10/24/002-kotlin-objects/","path":"2026/10/24/002-kotlin-objects/","title":"Kotlin 对象声明与对象表达式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin 对象声明与对象表达式 | リグンさん</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">リグンさん</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Kotlin-%E5%AF%B9%E8%B1%A1%E5%A3%B0%E6%98%8E%E4%B8%8E%E5%AF%B9%E8%B1%A1%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">Kotlin 对象声明与对象表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB%E9%80%9F%E8%A7%88"><span class="nav-number">1.1.</span> <span class="nav-text">1. 核心区别速览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%AF%B9%E8%B1%A1%E5%A3%B0%E6%98%8E%EF%BC%88Object-Declaration%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">2. 对象声明（Object Declaration）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E8%AF%AD%E6%B3%95"><span class="nav-number">1.2.1.</span> <span class="nav-text">2.1 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86"><span class="nav-number">1.2.2.</span> <span class="nav-text">2.2 编译原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E5%AF%B9%E8%B1%A1%E5%A3%B0%E6%98%8E%E7%9A%84%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.2.3.</span> <span class="nav-text">2.3 对象声明的种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.2.4.</span> <span class="nav-text">2.4 使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.2.5.</span> <span class="nav-text">2.5 注意点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%AF%B9%E8%B1%A1%E8%A1%A8%E8%BE%BE%E5%BC%8F%EF%BC%88Object-Expression%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">3. 对象表达式（Object Expression）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E8%AF%AD%E6%B3%95"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 编译原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E6%8D%95%E8%8E%B7%E5%A4%96%E9%83%A8%E5%8F%98%E9%87%8F%EF%BC%88%E9%97%AD%E5%8C%85%EF%BC%89"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 捕获外部变量（闭包）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.4.</span> <span class="nav-text">3.4 使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.3.5.</span> <span class="nav-text">3.5 注意点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%AF%B9%E8%B1%A1%E5%A3%B0%E6%98%8E-vs-%E5%AF%B9%E8%B1%A1%E8%A1%A8%E8%BE%BE%E5%BC%8F%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%AF%B9%E6%AF%94"><span class="nav-number">1.4.</span> <span class="nav-text">4. 对象声明 vs 对象表达式：代码对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%B8%8E-Java-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">1.5.</span> <span class="nav-text">5. 与 Java 的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E7%AD%94%E6%A1%88"><span class="nav-number">1.6.</span> <span class="nav-text">6. 常见面试题与答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%8D%95%E4%BE%8B%E4%B8%8E%E5%8C%BF%E5%90%8D%E7%9B%91%E5%90%AC%E5%99%A8"><span class="nav-number">1.7.</span> <span class="nav-text">7. 完整示例：单例与匿名监听器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E6%80%BB%E7%BB%93"><span class="nav-number">1.8.</span> <span class="nav-text">8. 总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/konokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;konokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/ivanjlee" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;ivanjlee" rel="noopener me" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://konokol.github.io/2026/10/24/002-kotlin-objects/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin 对象声明与对象表达式 | リグンさん">
+      <meta itemprop="description" content="Kotlin 可以用 objects 来创建对象，分别是对象声明和对象表达式，语法相似语义不同。一句话记忆，对象声明是单例，对象表达式是匿名内部类。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin 对象声明与对象表达式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-24 10:38:19 / 修改时间：10:47:04" itemprop="dateCreated datePublished" datetime="2026-10-24T10:38:19+08:00">2026-10-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">Kotlin 可以用 objects 来创建对象，分别是对象声明和对象表达式，语法相似语义不同。一句话记忆，对象声明是单例，对象表达式是匿名内部类。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Kotlin-对象声明与对象表达式"><a href="#Kotlin-对象声明与对象表达式" class="headerlink" title="Kotlin 对象声明与对象表达式"></a>Kotlin 对象声明与对象表达式</h1><p>Kotlin 用 <code>object</code> 关键字同时支持两种截然不同的东西：<strong>对象声明（Object Declaration）</strong> 和 <strong>对象表达式（Object Expression）</strong>。它们语法相似，但语义和用途完全不同，是面试高频考点。</p>
+<hr>
+<h2 id="1-核心区别速览"><a href="#1-核心区别速览" class="headerlink" title="1. 核心区别速览"></a>1. 核心区别速览</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>对象声明</th>
+<th>对象表达式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>关键字</td>
+<td><code>object Foo</code></td>
+<td><code>object : Bar { }</code> 或 <code>object { }</code></td>
+</tr>
+<tr>
+<td>本质</td>
+<td>单例类，编译后有 <code>INSTANCE</code> 静态字段</td>
+<td>匿名内部类，每次执行创建新实例</td>
+</tr>
+<tr>
+<td>实例数量</td>
+<td>全局唯一</td>
+<td>每次求值都新创建一个</td>
+</tr>
+<tr>
+<td>是否有名字</td>
+<td>有，通过名字访问</td>
+<td>通常匿名，可赋值给变量</td>
+</tr>
+<tr>
+<td>能否继承&#x2F;实现</td>
+<td>能</td>
+<td>能</td>
+</tr>
+<tr>
+<td>能否捕获外部变量</td>
+<td>不能</td>
+<td>能（闭包）</td>
+</tr>
+<tr>
+<td>初始化时机</td>
+<td>首次访问时惰性初始化，线程安全</td>
+<td>每次执行到时创建</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>单例、工具类、伴生对象</td>
+<td>匿名监听器、临时实现、Adapter</td>
+</tr>
+<tr>
+<td>与 Java 对应</td>
+<td>静态单例</td>
+<td>匿名内部类</td>
+</tr>
+</tbody></table>
+<p><strong>一句话记忆</strong>：<br><strong>对象声明是单例，对象表达式是匿名内部类。</strong></p>
+<hr>
+<h2 id="2-对象声明（Object-Declaration）"><a href="#2-对象声明（Object-Declaration）" class="headerlink" title="2. 对象声明（Object Declaration）"></a>2. 对象声明（Object Declaration）</h2><h3 id="2-1-语法"><a href="#2-1-语法" class="headerlink" title="2.1 语法"></a>2.1 语法</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">val</span> name = <span class="string">&quot;Singleton&quot;</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">doSomething</span><span class="params">()</span></span> &#123; println(<span class="string">&quot;Doing&quot;</span>) &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line">Singleton.doSomething()</span><br><span class="line">println(Singleton.name)</span><br></pre></td></tr></table></figure>
+
+<p>对象声明可以继承类或实现接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Logger</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">log</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">object</span> ConsoleLogger : Logger &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">log</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-编译原理"><a href="#2-2-编译原理" class="headerlink" title="2.2 编译原理"></a>2.2 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">val</span> name = <span class="string">&quot;Singleton&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Singleton</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Singleton</span> <span class="variable">INSTANCE</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Singleton</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;Singleton&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">private</span> <span class="title function_">Singleton</span><span class="params">()</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个 <code>final</code> 类。</li>
+<li>私有构造器，防止外部实例化。</li>
+<li>静态字段 <code>INSTANCE</code> 持有唯一实例。</li>
+<li>首次访问 <code>Singleton.INSTANCE</code> 时初始化，<strong>线程安全</strong>（JVM 类加载机制保证）。</li>
+</ul>
+<h3 id="2-3-对象声明的种类"><a href="#2-3-对象声明的种类" class="headerlink" title="2.3 对象声明的种类"></a>2.3 对象声明的种类</h3><ol>
+<li><strong>普通对象声明</strong>：<code>object Foo { }</code></li>
+<li><strong>伴生对象</strong>：<code>companion object { }</code>，与外部类关联，成员可通过外部类名访问。</li>
+<li><strong>数据对象</strong>（Kotlin 1.9+）：<code>data object Foo { }</code>，自动生成 <code>toString/equals/hashCode</code>，常用于密封类。</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">State</span> &#123;</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">object</span> Loading : State</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Success</span>(<span class="keyword">val</span> <span class="keyword">data</span>: String) : State</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-使用场景"><a href="#2-4-使用场景" class="headerlink" title="2.4 使用场景"></a>2.4 使用场景</h3><ul>
+<li>单例模式（最常用）。</li>
+<li>工具类、常量集合。</li>
+<li>伴生对象。</li>
+<li>接口的默认实现对象。</li>
+<li>密封类的无状态子类（<code>data object</code>）。</li>
+</ul>
+<h3 id="2-5-注意点"><a href="#2-5-注意点" class="headerlink" title="2.5 注意点"></a>2.5 注意点</h3><ul>
+<li>对象声明不能有构造器（因为只有一个实例）。</li>
+<li>对象声明可以嵌套在类中，但它是<strong>静态单例</strong>，不持有外部类实例引用。</li>
+<li>对象声明可以访问外部类的静态成员（如伴生对象），但不能访问实例成员。</li>
+<li>对象声明可以定义 <code>init</code> 块，在首次访问时执行。</li>
+</ul>
+<hr>
+<h2 id="3-对象表达式（Object-Expression）"><a href="#3-对象表达式（Object-Expression）" class="headerlink" title="3. 对象表达式（Object Expression）"></a>3. 对象表达式（Object Expression）</h2><h3 id="3-1-语法"><a href="#3-1-语法" class="headerlink" title="3.1 语法"></a>3.1 语法</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实现接口</span></span><br><span class="line"><span class="keyword">val</span> listener = <span class="keyword">object</span> : View.OnClickListener &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>?)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Clicked&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承类</span></span><br><span class="line"><span class="keyword">val</span> runnable = <span class="keyword">object</span> : Thread() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Running&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不继承任何东西，纯匿名对象</span></span><br><span class="line"><span class="keyword">val</span> obj = <span class="keyword">object</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> x = <span class="number">1</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">foo</span><span class="params">()</span></span> = <span class="string">&quot;foo&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-编译原理"><a href="#3-2-编译原理" class="headerlink" title="3.2 编译原理"></a>3.2 编译原理</h3><p>对象表达式编译为<strong>匿名内部类</strong>。每次执行到该表达式时，创建一个新实例。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createListener</span><span class="params">()</span></span>: View.OnClickListener &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">object</span> : View.OnClickListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>?)</span></span> &#123; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次调用 <code>createListener()</code> 都会返回不同的对象。</p>
+<h3 id="3-3-捕获外部变量（闭包）"><a href="#3-3-捕获外部变量（闭包）" class="headerlink" title="3.3 捕获外部变量（闭包）"></a>3.3 捕获外部变量（闭包）</h3><p>对象表达式可以访问并捕获外部作用域的变量：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createCounter</span><span class="params">()</span></span>: () -&gt; <span class="built_in">Int</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">object</span> : () -&gt; <span class="built_in">Int</span> &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">()</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">            count++          <span class="comment">// 捕获外部变量</span></span><br><span class="line">            <span class="keyword">return</span> count</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对象声明不能这样做，因为它没有外部作用域。</p>
+<h3 id="3-4-使用场景"><a href="#3-4-使用场景" class="headerlink" title="3.4 使用场景"></a>3.4 使用场景</h3><ul>
+<li>匿名内部类（监听器、回调、Runnable）。</li>
+<li>临时实现接口或抽象类。</li>
+<li>需要访问外部变量的场合。</li>
+<li>作为局部变量或参数。</li>
+</ul>
+<h3 id="3-5-注意点"><a href="#3-5-注意点" class="headerlink" title="3.5 注意点"></a>3.5 注意点</h3><ul>
+<li>对象表达式每次执行都会创建新实例。</li>
+<li>如果在 Activity&#x2F;Fragment 中创建并持有外部引用，可能引起内存泄漏。</li>
+<li>对象表达式可以继承类或实现接口，但只能继承一个类，可实现多个接口。</li>
+<li>对象表达式没有名字，但可以赋值给变量，通过变量访问。</li>
+<li>如果对象表达式作为局部变量，其类型是匿名的，只能通过变量访问成员；如果作为参数，类型是声明的父类型。</li>
+</ul>
+<hr>
+<h2 id="4-对象声明-vs-对象表达式：代码对比"><a href="#4-对象声明-vs-对象表达式：代码对比" class="headerlink" title="4. 对象声明 vs 对象表达式：代码对比"></a>4. 对象声明 vs 对象表达式：代码对比</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对象声明：单例</span></span><br><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">increment</span><span class="params">()</span></span> &#123; count++ &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    Singleton.increment()</span><br><span class="line">    Singleton.increment()</span><br><span class="line">    println(Singleton.count) <span class="comment">// 2</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对象表达式：每次新实例</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">makeCounter</span><span class="params">()</span></span> = <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">increment</span><span class="params">()</span></span> &#123; count++ &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> c1 = makeCounter()</span><br><span class="line">    <span class="keyword">val</span> c2 = makeCounter()</span><br><span class="line">    c1.increment()</span><br><span class="line">    c1.increment()</span><br><span class="line">    println(c1.count) <span class="comment">// 2</span></span><br><span class="line">    println(c2.count) <span class="comment">// 0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-与-Java-的对比"><a href="#5-与-Java-的对比" class="headerlink" title="5. 与 Java 的对比"></a>5. 与 Java 的对比</h2><table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Java 对应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>object Singleton { }</code></td>
+<td><code>static</code> 单例（<code>INSTANCE</code> 字段）</td>
+</tr>
+<tr>
+<td><code>object : Interface { }</code></td>
+<td><code>new Interface() { }</code> 匿名内部类</td>
+</tr>
+<tr>
+<td><code>companion object { }</code></td>
+<td><code>static</code> 成员 + 单例</td>
+</tr>
+<tr>
+<td><code>data object</code></td>
+<td>无直接对应</td>
+</tr>
+</tbody></table>
+<p>Java 调用 Kotlin 对象声明：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Singleton.INSTANCE.doSomething();</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-常见面试题与答案"><a href="#6-常见面试题与答案" class="headerlink" title="6. 常见面试题与答案"></a>6. 常见面试题与答案</h2><p><strong>Q1：对象声明和对象表达式的区别？</strong><br>A：对象声明是单例，编译后有 <code>INSTANCE</code> 静态字段，全局唯一；对象表达式是匿名内部类，每次执行创建新实例，可捕获外部变量。</p>
+<p><strong>Q2：对象声明是线程安全的吗？</strong><br>A：是。JVM 类加载机制保证静态初始化线程安全，首次访问时初始化一次。</p>
+<p><strong>Q3：对象表达式能捕获外部变量吗？对象声明呢？</strong><br>A：对象表达式能捕获外部作用域变量（闭包）；对象声明不能，因为它没有外部作用域。</p>
+<p><strong>Q4：对象声明能继承类吗？</strong><br>A：能，可以继承一个类并实现多个接口。</p>
+<p><strong>Q5：对象表达式每次都会创建新对象吗？</strong><br>A：是，每次执行到对象表达式都会创建新实例。</p>
+<p><strong>Q6：对象声明能用在什么地方？</strong><br>A：单例、工具类、伴生对象、数据对象、密封类子类。</p>
+<p><strong>Q7：<code>data object</code> 和 <code>object</code> 区别？</strong><br>A：<code>data object</code> 自动生成 <code>toString/equals/hashCode</code>，适合密封类无状态子类；<code>object</code> 不生成。</p>
+<p><strong>Q8：对象表达式会导致内存泄漏吗？</strong><br>A：在 Android 中，若匿名内部类持有 Activity 引用且生命周期长于 Activity，可能泄漏。可用静态内部类 + WeakReference 或 lambda 避免。</p>
+<p><strong>Q9：对象声明和伴生对象区别？</strong><br>A：伴生对象是对象声明的特殊形式，用 <code>companion</code> 修饰，与外部类关联，成员可通过外部类名访问；普通对象声明独立。</p>
+<p><strong>Q10：对象表达式能访问外部类的私有成员吗？</strong><br>A：能，如果它是在外部类内部创建的，会持有外部类引用，可以访问私有成员。</p>
+<p><strong>Q11：对象声明初始化时机？</strong><br>A：首次访问时惰性初始化，线程安全，只一次。</p>
+<p><strong>Q12：对象表达式能作为函数返回值吗？</strong><br>A：能，但返回类型通常是父类型或 <code>Any</code>，匿名类型只能在局部作用域使用。</p>
+<p><strong>Q13：Kotlin 中如何实现单例？</strong><br>A：用 <code>object</code> 声明最简单，线程安全，懒加载。也可用 <code>companion object</code> + <code>by lazy</code> 等。</p>
+<p><strong>Q14：对象声明能定义扩展函数吗？</strong><br>A：能，可以为对象声明定义扩展函数，但需通过对象名调用。</p>
+<hr>
+<h2 id="7-完整示例：单例与匿名监听器"><a href="#7-完整示例：单例与匿名监听器" class="headerlink" title="7. 完整示例：单例与匿名监听器"></a>7. 完整示例：单例与匿名监听器</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对象声明：单例</span></span><br><span class="line"><span class="keyword">object</span> Config &#123;</span><br><span class="line">    <span class="keyword">var</span> debug = <span class="literal">false</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">enableDebug</span><span class="params">()</span></span> &#123; debug = <span class="literal">true</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对象表达式：匿名监听器</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Button</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(listener: <span class="type">OnClickListener</span>)</span></span> &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">OnClickListener</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    Config.enableDebug()</span><br><span class="line">    println(Config.debug)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> button = Button()</span><br><span class="line">    <span class="keyword">val</span> count = intArrayOf(<span class="number">0</span>)</span><br><span class="line">    button.setOnClickListener(<span class="keyword">object</span> : OnClickListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">()</span></span> &#123;</span><br><span class="line">            count[<span class="number">0</span>]++</span><br><span class="line">            println(<span class="string">&quot;Clicked <span class="subst">$&#123;count[<span class="number">0</span>]&#125;</span> times&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h2><ul>
+<li><strong>对象声明</strong>：<code>object Foo</code>，单例，编译后 <code>INSTANCE</code> 静态字段，线程安全，懒加载。用于单例、工具类、伴生对象、<code>data object</code>。</li>
+<li><strong>对象表达式</strong>：<code>object : Bar { }</code>，匿名内部类，每次创建新实例，可捕获外部变量。用于监听器、回调、临时实现。</li>
+<li>对象声明不能捕获外部变量；对象表达式可以。</li>
+<li>对象声明全局唯一；对象表达式每次新实例。</li>
+<li>与 Java 对比：对象声明 ≈ 静态单例；对象表达式 ≈ 匿名内部类。</li>
+<li>面试高频：区别、线程安全、初始化时机、内存泄漏、与伴生对象对比、单例实现。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/24/002-kotlin-inline-class/" rel="prev" title="Kotlin 内联类（Inline Class &#x2F; Value Class）">
+                  <i class="fa fa-angle-left"></i> Kotlin 内联类（Inline Class / Value Class）
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/konokol" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

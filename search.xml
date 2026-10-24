@@ -1,6 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Java 8函数式编程–––Lambda表达式</title>
+    <url>/2017/11/28/001-java-8-lambda/</url>
+    <content><![CDATA[<h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><h3 id="1-1-匿名内部类"><a href="#1-1-匿名内部类" class="headerlink" title="1.1 匿名内部类"></a>1.1 匿名内部类</h3><p>设计匿名内部类的目的，是为了方便开发者将代码作为数据传递。举个栗子，在Android中，为一个按钮设置一个点击事件的监听器：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">button.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">     <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">(View view)</span> &#123;</span><br><span class="line">          Log.v(TAG, <span class="string">&quot;button is clicked!&quot;</span>);</span><br><span class="line">     &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-Lambda表达式"><a href="#1-2-Lambda表达式" class="headerlink" title="1.2 Lambda表达式"></a>1.2 Lambda表达式</h3><p>Lambda表达式的作用和匿名内部类相似，也是为了将代码作为数据来传递，从某种意义上讲，Lambda表达式也可以理解为匿名函数，在其他的一些语言中则把称为闭包，实际上意义都差不多的。上面的例子，用Lambda表达式来改写，可以表示为：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">button.setOnClickListener(view -&gt; Log.v(TAG, <span class="string">&quot;button is clicked!&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>和使用匿名内部类传入实现了某个接口的对象不同，Lambda传入的参数是一段代码快，即匿名函数(注意这里已经不在叫方法而叫函数了)。这个匿名函数中，-&gt;将参数和Lambda表达式的主体分开，view是函数的参数，Log.v(TAG, “button is clicked!”)是这个函数的具体实现。</p>
+<p><img src="/../img/lambda.png" alt="lambda表达式形式"></p>
+<p>lambda表达式语法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">(parameters) -&gt; expression</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">(parameters) -&gt; &#123;statemens;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Lambda表达式中，参数的类型不需要显式指明，因为javac会根据程序的上下文来推断出参数的类型，这一点和kotlin很相似。</p>
+<p>几个Lambda表达式的例子：</p>
+<p>1、没有参数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> () -&gt; Log.v(TAG, <span class="string">&quot;run&quot;</span>);</span><br></pre></td></tr></table></figure>
+<p>2、一个参数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">View.<span class="type">OnClickListener</span> <span class="variable">listener</span> <span class="operator">=</span> view -&gt; Log.v(TAG, <span class="string">&quot;onClick&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>3、一个参数包含代码块</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> () -&gt; &#123;</span><br><span class="line">     Log.v(TAG, <span class="string">&quot;run first step&quot;</span>);</span><br><span class="line">     Log.v(TAG, <span class="string">&quot;run second step&quot;</span>);   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>4、多个参数,不指定参数类型</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Callback</span>&lt;String&gt; <span class="variable">callback</span> <span class="operator">=</span> (arg1, arg2) -&gt; arg1 + arg2;</span><br></pre></td></tr></table></figure>
+
+<p>5、多个参数指定类型</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Callback</span>&lt;String&gt; <span class="variable">callback</span> <span class="operator">=</span> (String str1, String str2) -&gt; str1 + str2;</span><br></pre></td></tr></table></figure>
+
+<p>Lambda表达式的参数类型虽然可以由编译器推断出来, 但是在某些情况下, 也可能会推断不出来, 这时候就需要显式声明参数的类型了.</p>
+<h3 id="1-3-引用值而非变量"><a href="#1-3-引用值而非变量" class="headerlink" title="1.3 引用值而非变量"></a>1.3 引用值而非变量</h3><p>在匿名内部类中，如果需要引用外部的局部变量，则必须将这个变量设置成final类型，比如</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> getUserName();</span><br><span class="line">button.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">     <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">()</span> &#123;</span><br><span class="line">          Toast.make(context, <span class="string">&quot;hi, &quot;</span> + name, Toast.LENGTH_LONG).show();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>为什么匿名内部类访问局部变量必须是final类型的呢？简单来说，是为了保证数值的一致性。局部变量和匿名内部类的生命周期是不一样的，如果匿名内部类直接使用局部变量的引用并修改其值，则有可能造成内外值不一致的情况，所以Java规定了匿名内部类只能引用final类型的局部变量，这样一来，值不会被真正改变，匿名内部类中，也就保证了值的一致性。</p>
+<p>在Java 8中，放松了这一限制，可以引用非final类型的变量，然而，该变量在既成事实上也必须是final类型的。</p>
+<p>在Lambda表达式中，实际上也只能使用final类型的局部变量，即便不加final关键字，这个变量也还是final类型的。如果试图给Lambda表达式中使用一个非final类型的变量，编译器将会报错。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//这段代码不能通过编译</span></span><br><span class="line"><span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> getFirstName();</span><br><span class="line">name = <span class="string">&quot;Mr. &quot;</span> + name;</span><br><span class="line">button.setOnClickListener(view -&gt; Toast.make(context, <span class="string">&quot;Hi, &quot;</span> + name, Toast.LENGTH_LONG).show());</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-Lambda表达式的应用"><a href="#2-Lambda表达式的应用" class="headerlink" title="2 Lambda表达式的应用"></a>2 Lambda表达式的应用</h2><h3 id="2-1-函数式接口"><a href="#2-1-函数式接口" class="headerlink" title="2.1 函数式接口"></a>2.1 函数式接口</h3><p>**函数接口（Functional Interface）**是只有一个抽象方法的接口。例如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Comparator</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">int</span> <span class="title function_">compare</span><span class="params">(T o1, T o2)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>及</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">	<span class="type">void</span> <span class="title function_">run</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>注意：Java 8中，接口可以有默认方法，即便一个接口定义了多个默认方法，只要它的抽象方法只有一个，它仍然是一个函数式接口。</em></p>
+<p>Lambda表达式与函数式接口有什么关系呢？引用书中的一句话：</p>
+<blockquote>
+<p>Lambda表达式允许你直接以内联的形式为函数式接口的抽象方法提供实现，并把整个表达式作为函数式接口的实例（具体来说，是函数式接口一个具体实现的实例）。</p>
+</blockquote>
+<p>通俗一点来讲，Lambda表达式为函数式接口提供了具体的实现，从而来实现Java方法的传递（或者说是代码块传递）。当然，匿名内部类也可以实现同样的功能，只不过使用匿名内部类使用起来非常笨拙。</p>
+<p>@FunctionalInterface注解用于表示一个接口被设计为了函数式接口。如果自定义的接口加了这个注解，但确不是函数式接口，IDE会在编译时报错，“Multiple non-overriding abstract methods found in interface Foo”，意思是Foo这个接口中有多个抽象方法。</p>
+<p>对于函数式接口的设计，@FunctionalInterface并非是必须的，但是加上它是一个好习惯。</p>
+<h3 id="2-2-函数描述符"><a href="#2-2-函数描述符" class="headerlink" title="2.2 函数描述符"></a>2.2 函数描述符</h3><p>函数式接口中抽象方法的签名基本上也就是Lambda表达式的签名，我们把这种抽象方法叫做函数描述符。</p>
+<p>比如Runnable接口可以看作是一个什么也不接收，什么也不返回的方法的签名，它的run()方法不接收任何参数，最终返回void.</p>
+<p>Lambda和函数式接口的方法签名的一种记法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">() -&gt; <span class="keyword">void</span></span><br></pre></td></tr></table></figure>
+<p>这里表示的是Runnable接口所代表的方法。</p>
+<p>到此为止，关于Lambda表达式，我们需要记住的是：</p>
+<p><strong>1. Lambda表达式可以赋值给一个变量(函数式接口)；</strong></br><br><strong>2. Lambda表达式可以传递给一个接收函数式接口的方法。</strong></p>
+<p><strong>例子：</strong><br>Lambda表达式的有效使用方式：</p>
+<p>(1) Lambda表达式传给一个接收函数式接口的方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">execute(() -&gt; &#123;&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">execute</span><span class="params">(Runnable r)</span>&#123;</span><br><span class="line">	r.run(); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的Lambda表达式的签名是<code>() -&gt; void</code>，这是Runnable接口所代表的方法。</p>
+<p>(2) Lambda表达式作为返回值</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">Callable</span>&lt;String&gt; <span class="title function_">fetch</span><span class="params">()</span> &#123;</span><br><span class="line"> 	<span class="keyword">return</span> () -&gt; <span class="string">&quot;Tricky example ;-)&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Callable</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">T</span> <span class="title function_">call</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>fetch()方法返回一个Callable<String>对象，Callable<String>所代表的方法是<code>() -&gt; String</code>，这和例中所用的签名是一致的。</p>
+<p>(3) 一种错误的用法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Predicate</span>&lt;Apple&gt; <span class="variable">p</span> <span class="operator">=</span> (Apple a) -&gt; a.getWeight();</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>例中Lambda表达式的签名是<code>(Apple) -&gt; Double</code>，Predicate<Apple>所代表的方法是<code>(Apple) -&gt; boolean</code>，不一致。</p>
+<h3 id="2-3-函数式接口的使用"><a href="#2-3-函数式接口的使用" class="headerlink" title="2.3 函数式接口的使用"></a>2.3 函数式接口的使用</h3><p>上面介绍了函数式接口和函数描述符的概念，为了应用不同的Lambda表达式，就需要一套能够描述常见函数描述符的函数式接口。Java 8的java.util.function包中为我们引入了很多函数式接口。几个典型的函数式接口如下：</p>
+<h4 id="2-3-1-Predicate"><a href="#2-3-1-Predicate" class="headerlink" title="2.3.1 Predicate"></a>2.3.1 Predicate</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt;&#123;</span><br><span class="line">	<span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>涉及到返回值是boolean类型的表达式时，可以用Predicate<T>，例如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Predicate</span>&lt;String&gt; <span class="variable">p</span> <span class="operator">=</span> (s) -&gt; !s.isTempty();</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-2-Consumer"><a href="#2-3-2-Consumer" class="headerlink" title="2.3.2 Consumer"></a>2.3.2 Consumer</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Consumer</span>&lt;T&gt;&#123;</span><br><span class="line">	<span class="type">void</span> <span class="title function_">accept</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要对一个对象进行访问可以用Consumer<T>，例如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//定义一个forEach方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> &lt;T&gt; <span class="title function_">forEach</span><span class="params">(List&lt;T&gt; list, Consumer&lt;T&gt; consumer)</span> &#123;</span><br><span class="line">	<span class="keyword">for</span> (Integer i : list) &#123;</span><br><span class="line">		consumer.consume(i);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用</span></span><br><span class="line">forEach(Arrays.asList(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>), (Integer i) -&gt; System.out.print(i));</span><br></pre></td></tr></table></figure>
+<p>2.3.3 Function</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt;&#123;</span><br><span class="line">	<span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建映射关系或者从一个对象中提取信息可以用Function&lt;T, R&gt;。</p>
+<h2 id="3-类型检查与类型推断"><a href="#3-类型检查与类型推断" class="headerlink" title="3 类型检查与类型推断"></a>3 类型检查与类型推断</h2><p>上面提到，Lambda表达式为函数式接口提供了实现，但是Lambda表达式本身并不包含实现了哪个函数式接口的任何信息，所以需要了解Lambda表达式的实际类型。</p>
+<h3 id="3-1-类型检查"><a href="#3-1-类型检查" class="headerlink" title="3.1 类型检查"></a>3.1 类型检查</h3><p>Lambda表达式需要的类型称为<strong>目标类型</strong>。只要函数签名一致，Lambda表达式可以与很多函数式接口相关联。</p>
+<p>一张图说明类型检查的过程：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Apple&gt; <span class="variable">heavierThan150g</span> <span class="operator">=</span> filter(inventory, (Apple a) -&gt; a.getWeight() &gt; <span class="number">150</span>);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../image/type_check.png" alt="type check"></p>
+<h3 id="3-2-类型推断"><a href="#3-2-类型推断" class="headerlink" title="3.2 类型推断"></a>3.2 类型推断</h3><p>类型推断是Java 7引入的概念，&lt;&gt;操作符可使编译器在编译时根据上下文推断出参数类型。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">HashMap</span>&lt;String, Integer&gt; <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>这里，声明map时，已经明确指定了范型的类型，所以在new出HashMap对象时，编译器已经知道HashMap的具体范型。</p>
+<p>Java 8中，Lambda表达式可以省略所有参数的类型。因为函数描述符可以通过目标类型来得到，所以Java编译器就可以通过上下文信息来推断出正确的参数类型，从而确定使用什么函数式接口来配合Lambda表达式。</p>
+<p>当然，Lambda表达式也可以不省略参数类型，显式指定。至于这两种方式哪一种更好呢，则取决于不同的场景，有时候省略参数类型代码更易读，有的时候显式指明参数类型则比较好。</p>
+<h2 id="4-方法引用"><a href="#4-方法引用" class="headerlink" title="4 方法引用"></a>4 方法引用</h2><h3 id="4-1-方法引用简介"><a href="#4-1-方法引用简介" class="headerlink" title="4.1 方法引用简介"></a>4.1 方法引用简介</h3><p>既然Lambda表达式可以与函数式接口相关联，作为函数式接口的函数描述符的引用，那么一个对象的方法有没有类似的表示方法呢？答案是有的，Java 8提供了方法引用(Method Referen)的表示方法。（在C语言或者是其他一些编程语言中，也有类似的概念，比如，C语言中的指向函数的指针，Python中把一个函数赋值给变量）</p>
+<p>方法引用可以重复使用现有的方法定义，并像Lambda表达式一样传递它们。</p>
+<p>方法引用通过一个::来表示，需要使用方法引用时，目标引用放在分隔符::前，方法名放在后面。</p>
+<p>一些例子：</p>
+<table>
+<thead>
+<tr>
+<th>Lambda</th>
+<th>方法引用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>() -&gt; Thread.currentThread().dumpStack()</td>
+<td>Thread.currentThread()::dumpStack</td>
+</tr>
+<tr>
+<td>(str, i) -&gt; str.substring(i)</td>
+<td>String::substring</td>
+</tr>
+<tr>
+<td>(String s) -&gt; System.out.print(s)</td>
+<td>System.out::print</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-构建方法引用"><a href="#4-2-构建方法引用" class="headerlink" title="4.2 构建方法引用"></a>4.2 构建方法引用</h3><h4 id="4-2-1-方法引用主要分为3类："><a href="#4-2-1-方法引用主要分为3类：" class="headerlink" title="4.2.1 方法引用主要分为3类："></a>4.2.1 方法引用主要分为3类：</h4><ol>
+<li><p>指向静态方法引用</p>
+<p> 例如Integer.parseInt()方法，写作Integer::parseInt</p>
+</li>
+<li><p>指向任意类型方法实例的方法引用</p>
+<p> 如String中的length方法，写作String::length</p>
+</li>
+<li><p>指向已有对象的实例方法的方法引用</p>
+<p> 比如有一个Student的实例stu，有一个方法是getName，就可以写成stu::getName</p>
+</li>
+</ol>
+<p><strong>区别：</strong></p>
+<p>静态方法引用是直接引用类的静态方法，通过 “类名::方法名”的方式引用；</p>
+<p>第二种方法引用中，引用了一个对象的方法，但是这个对象本身是Lambda表达式的一个参数，不如上面的例子中，对应的Lambda表达式是(String s) -&gt; s.length()；</p>
+<p>第三种中，是在Lambda表达式中调用一个已经存在的对象的方法，上面的例子改写成Lambda表达式就是() -&gt; stu.getName()，和第二种的区别就是调用的对象的方法不是Lambda的参数。</p>
+<h4 id="4-1-2-构造方法引用"><a href="#4-1-2-构造方法引用" class="headerlink" title="4.1.2 构造方法引用"></a>4.1.2 构造方法引用</h4><p>对于一个现有的构造方法，可以利用它的名称和关键字new来创建一个方法引用：ClassName::new.</p>
+<p>它的功能和静态方法的引用类似，比如有一个无参构造方法，适合Supplier的签名，() -&gt; Apple，那么可以这样写：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Supplier</span>&lt;Apple&gt; <span class="variable">constuctor</span> <span class="operator">=</span> Apple::<span class="keyword">new</span>;</span><br><span class="line"><span class="type">Apple</span> <span class="variable">apple</span> <span class="operator">=</span> constructor.get();</span><br></pre></td></tr></table></figure>
+
+<p>它等价于Lambda表达式的写法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Supplier</span>&lt;Apple&gt; <span class="variable">constuctor</span> <span class="operator">=</span> () -&gt; <span class="keyword">new</span> <span class="title class_">Apple</span>();</span><br><span class="line"><span class="type">Apple</span> <span class="variable">apple</span> <span class="operator">=</span> constructor.get();</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-实践"><a href="#5-实践" class="headerlink" title="5 实践"></a>5 实践</h2><p>有一些菜品，存在<code>List&lt;Dish&gt; dishes</code>中，现在要将它们按照价格升序排序。</p>
+<ol>
+<li><p>在Java 8之前</p>
+<p> Java 8之前，List没有sort方法，需要借助Collection类。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DishComparator</span> <span class="keyword">implements</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">Collection.sort(list, <span class="keyword">new</span> <span class="title class_">DishComparator</span>());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Java 8中，使用来排序list</p>
+<p> Java 8之前，List没有sort方法，需要借助Collection类。</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DishComparator</span> <span class="keyword">implements</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">list.sort(<span class="keyword">new</span> <span class="title class_">DishComparator</span>());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用匿名内部类</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort(<span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用Lambda表达式</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort((Dish d1, Dish d2) -&gt; d1.getPrice() - d2.getPrice());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用方法引用</p>
+ <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort(Comparator.comparating(Dish::getPrice))</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6 小结"></a>6 小结</h2><ul>
+<li><strong>Lambda表达式</strong>可以理解为一种匿名函数：没有名称，但有参数列表、函数主体、返回值；</li>
+<li>Lambda表达式可以让你更简洁的传递代码；</li>
+<li><strong>函数式接口</strong>就是仅仅声明了一个抽象方法的接口；</li>
+<li>只有在接收函数式接口的地方才可以使用Lambda表达式；</li>
+<li>Lambda表达式允许你直接内联，为函数式接口的抽象方法提供实现，并且将整个表达式作为函数式接口的的一个实例；</li>
+<li>Java 8自带一些常用的函数式接口，在java.util.function包里，包括Predicate<T>、Function&lt;T,R&gt;、Supplier<T>、Consumer<T>等；</li>
+<li>Lambda表达式所需要的代表的类型成为目标类型；</li>
+<li>方法引用让你重复使用现有的方法实现并直接传递它们；</li>
+<li>Comparator、Predicate、和Function等函数式接口有几个可以结合Lambda表达式的默认方法。</li>
+</ul>
+<p>–</p>
+<p>作者：Ivan J. Lee</br><br>时间：2017-11-28 00:40</p>
+]]></content>
+      <categories>
+        <category>tech</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>进程与线程</title>
     <url>/2020/08/03/000-cs-processes-and-threads/</url>
     <content><![CDATA[<h2 id="进程和线程概览"><a href="#进程和线程概览" class="headerlink" title="进程和线程概览"></a>进程和线程概览</h2><p>当应用组件启动且该应用未运行任何其他组件时，Android 系统会使用单个执行线程为应用启动新的 Linux 进程。默认情况下，同一应用的所有组件会在相同的进程和线程（称为“主”线程）中运行。如果某个应用组件启动且该应用已存在进程（因为存在该应用的其他组件），则该组件会在此进程内启动并使用相同的执行线程。但是，您可以安排应用中的其他组件在单独的进程中运行，并为任何进程创建额外的线程。</p>
@@ -192,392 +372,6 @@
 ]]></content>
       <tags>
         <tag>java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java 8函数式编程–––Lambda表达式</title>
-    <url>/2017/11/28/001-java-8-lambda/</url>
-    <content><![CDATA[<h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><h3 id="1-1-匿名内部类"><a href="#1-1-匿名内部类" class="headerlink" title="1.1 匿名内部类"></a>1.1 匿名内部类</h3><p>设计匿名内部类的目的，是为了方便开发者将代码作为数据传递。举个栗子，在Android中，为一个按钮设置一个点击事件的监听器：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">button.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">     <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">(View view)</span> &#123;</span><br><span class="line">          Log.v(TAG, <span class="string">&quot;button is clicked!&quot;</span>);</span><br><span class="line">     &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-2-Lambda表达式"><a href="#1-2-Lambda表达式" class="headerlink" title="1.2 Lambda表达式"></a>1.2 Lambda表达式</h3><p>Lambda表达式的作用和匿名内部类相似，也是为了将代码作为数据来传递，从某种意义上讲，Lambda表达式也可以理解为匿名函数，在其他的一些语言中则把称为闭包，实际上意义都差不多的。上面的例子，用Lambda表达式来改写，可以表示为：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">button.setOnClickListener(view -&gt; Log.v(TAG, <span class="string">&quot;button is clicked!&quot;</span>));</span><br></pre></td></tr></table></figure>
-
-<p>和使用匿名内部类传入实现了某个接口的对象不同，Lambda传入的参数是一段代码快，即匿名函数(注意这里已经不在叫方法而叫函数了)。这个匿名函数中，-&gt;将参数和Lambda表达式的主体分开，view是函数的参数，Log.v(TAG, “button is clicked!”)是这个函数的具体实现。</p>
-<p><img src="/../img/lambda.png" alt="lambda表达式形式"></p>
-<p>lambda表达式语法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">(parameters) -&gt; expression</span><br></pre></td></tr></table></figure>
-<p>或者</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">(parameters) -&gt; &#123;statemens;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Lambda表达式中，参数的类型不需要显式指明，因为javac会根据程序的上下文来推断出参数的类型，这一点和kotlin很相似。</p>
-<p>几个Lambda表达式的例子：</p>
-<p>1、没有参数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> () -&gt; Log.v(TAG, <span class="string">&quot;run&quot;</span>);</span><br></pre></td></tr></table></figure>
-<p>2、一个参数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">View.<span class="type">OnClickListener</span> <span class="variable">listener</span> <span class="operator">=</span> view -&gt; Log.v(TAG, <span class="string">&quot;onClick&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p>3、一个参数包含代码块</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> () -&gt; &#123;</span><br><span class="line">     Log.v(TAG, <span class="string">&quot;run first step&quot;</span>);</span><br><span class="line">     Log.v(TAG, <span class="string">&quot;run second step&quot;</span>);   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>4、多个参数,不指定参数类型</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Callback</span>&lt;String&gt; <span class="variable">callback</span> <span class="operator">=</span> (arg1, arg2) -&gt; arg1 + arg2;</span><br></pre></td></tr></table></figure>
-
-<p>5、多个参数指定类型</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Callback</span>&lt;String&gt; <span class="variable">callback</span> <span class="operator">=</span> (String str1, String str2) -&gt; str1 + str2;</span><br></pre></td></tr></table></figure>
-
-<p>Lambda表达式的参数类型虽然可以由编译器推断出来, 但是在某些情况下, 也可能会推断不出来, 这时候就需要显式声明参数的类型了.</p>
-<h3 id="1-3-引用值而非变量"><a href="#1-3-引用值而非变量" class="headerlink" title="1.3 引用值而非变量"></a>1.3 引用值而非变量</h3><p>在匿名内部类中，如果需要引用外部的局部变量，则必须将这个变量设置成final类型，比如</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> getUserName();</span><br><span class="line">button.setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">     <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">onClick</span><span class="params">()</span> &#123;</span><br><span class="line">          Toast.make(context, <span class="string">&quot;hi, &quot;</span> + name, Toast.LENGTH_LONG).show();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p>为什么匿名内部类访问局部变量必须是final类型的呢？简单来说，是为了保证数值的一致性。局部变量和匿名内部类的生命周期是不一样的，如果匿名内部类直接使用局部变量的引用并修改其值，则有可能造成内外值不一致的情况，所以Java规定了匿名内部类只能引用final类型的局部变量，这样一来，值不会被真正改变，匿名内部类中，也就保证了值的一致性。</p>
-<p>在Java 8中，放松了这一限制，可以引用非final类型的变量，然而，该变量在既成事实上也必须是final类型的。</p>
-<p>在Lambda表达式中，实际上也只能使用final类型的局部变量，即便不加final关键字，这个变量也还是final类型的。如果试图给Lambda表达式中使用一个非final类型的变量，编译器将会报错。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//这段代码不能通过编译</span></span><br><span class="line"><span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> getFirstName();</span><br><span class="line">name = <span class="string">&quot;Mr. &quot;</span> + name;</span><br><span class="line">button.setOnClickListener(view -&gt; Toast.make(context, <span class="string">&quot;Hi, &quot;</span> + name, Toast.LENGTH_LONG).show());</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-Lambda表达式的应用"><a href="#2-Lambda表达式的应用" class="headerlink" title="2 Lambda表达式的应用"></a>2 Lambda表达式的应用</h2><h3 id="2-1-函数式接口"><a href="#2-1-函数式接口" class="headerlink" title="2.1 函数式接口"></a>2.1 函数式接口</h3><p>**函数接口（Functional Interface）**是只有一个抽象方法的接口。例如：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Comparator</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">int</span> <span class="title function_">compare</span><span class="params">(T o1, T o2)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>及</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">	<span class="type">void</span> <span class="title function_">run</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><em>注意：Java 8中，接口可以有默认方法，即便一个接口定义了多个默认方法，只要它的抽象方法只有一个，它仍然是一个函数式接口。</em></p>
-<p>Lambda表达式与函数式接口有什么关系呢？引用书中的一句话：</p>
-<blockquote>
-<p>Lambda表达式允许你直接以内联的形式为函数式接口的抽象方法提供实现，并把整个表达式作为函数式接口的实例（具体来说，是函数式接口一个具体实现的实例）。</p>
-</blockquote>
-<p>通俗一点来讲，Lambda表达式为函数式接口提供了具体的实现，从而来实现Java方法的传递（或者说是代码块传递）。当然，匿名内部类也可以实现同样的功能，只不过使用匿名内部类使用起来非常笨拙。</p>
-<p>@FunctionalInterface注解用于表示一个接口被设计为了函数式接口。如果自定义的接口加了这个注解，但确不是函数式接口，IDE会在编译时报错，“Multiple non-overriding abstract methods found in interface Foo”，意思是Foo这个接口中有多个抽象方法。</p>
-<p>对于函数式接口的设计，@FunctionalInterface并非是必须的，但是加上它是一个好习惯。</p>
-<h3 id="2-2-函数描述符"><a href="#2-2-函数描述符" class="headerlink" title="2.2 函数描述符"></a>2.2 函数描述符</h3><p>函数式接口中抽象方法的签名基本上也就是Lambda表达式的签名，我们把这种抽象方法叫做函数描述符。</p>
-<p>比如Runnable接口可以看作是一个什么也不接收，什么也不返回的方法的签名，它的run()方法不接收任何参数，最终返回void.</p>
-<p>Lambda和函数式接口的方法签名的一种记法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">() -&gt; <span class="keyword">void</span></span><br></pre></td></tr></table></figure>
-<p>这里表示的是Runnable接口所代表的方法。</p>
-<p>到此为止，关于Lambda表达式，我们需要记住的是：</p>
-<p><strong>1. Lambda表达式可以赋值给一个变量(函数式接口)；</strong></br><br><strong>2. Lambda表达式可以传递给一个接收函数式接口的方法。</strong></p>
-<p><strong>例子：</strong><br>Lambda表达式的有效使用方式：</p>
-<p>(1) Lambda表达式传给一个接收函数式接口的方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">execute(() -&gt; &#123;&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">execute</span><span class="params">(Runnable r)</span>&#123;</span><br><span class="line">	r.run(); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里的Lambda表达式的签名是<code>() -&gt; void</code>，这是Runnable接口所代表的方法。</p>
-<p>(2) Lambda表达式作为返回值</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">Callable</span>&lt;String&gt; <span class="title function_">fetch</span><span class="params">()</span> &#123;</span><br><span class="line"> 	<span class="keyword">return</span> () -&gt; <span class="string">&quot;Tricky example ;-)&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Callable</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">T</span> <span class="title function_">call</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>fetch()方法返回一个Callable<String>对象，Callable<String>所代表的方法是<code>() -&gt; String</code>，这和例中所用的签名是一致的。</p>
-<p>(3) 一种错误的用法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Predicate</span>&lt;Apple&gt; <span class="variable">p</span> <span class="operator">=</span> (Apple a) -&gt; a.getWeight();</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">	<span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>例中Lambda表达式的签名是<code>(Apple) -&gt; Double</code>，Predicate<Apple>所代表的方法是<code>(Apple) -&gt; boolean</code>，不一致。</p>
-<h3 id="2-3-函数式接口的使用"><a href="#2-3-函数式接口的使用" class="headerlink" title="2.3 函数式接口的使用"></a>2.3 函数式接口的使用</h3><p>上面介绍了函数式接口和函数描述符的概念，为了应用不同的Lambda表达式，就需要一套能够描述常见函数描述符的函数式接口。Java 8的java.util.function包中为我们引入了很多函数式接口。几个典型的函数式接口如下：</p>
-<h4 id="2-3-1-Predicate"><a href="#2-3-1-Predicate" class="headerlink" title="2.3.1 Predicate"></a>2.3.1 Predicate</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt;&#123;</span><br><span class="line">	<span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>涉及到返回值是boolean类型的表达式时，可以用Predicate<T>，例如：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Predicate</span>&lt;String&gt; <span class="variable">p</span> <span class="operator">=</span> (s) -&gt; !s.isTempty();</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-3-2-Consumer"><a href="#2-3-2-Consumer" class="headerlink" title="2.3.2 Consumer"></a>2.3.2 Consumer</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Consumer</span>&lt;T&gt;&#123;</span><br><span class="line">	<span class="type">void</span> <span class="title function_">accept</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>需要对一个对象进行访问可以用Consumer<T>，例如：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//定义一个forEach方法</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> &lt;T&gt; <span class="title function_">forEach</span><span class="params">(List&lt;T&gt; list, Consumer&lt;T&gt; consumer)</span> &#123;</span><br><span class="line">	<span class="keyword">for</span> (Integer i : list) &#123;</span><br><span class="line">		consumer.consume(i);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用</span></span><br><span class="line">forEach(Arrays.asList(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>), (Integer i) -&gt; System.out.print(i));</span><br></pre></td></tr></table></figure>
-<p>2.3.3 Function</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt;&#123;</span><br><span class="line">	<span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>创建映射关系或者从一个对象中提取信息可以用Function&lt;T, R&gt;。</p>
-<h2 id="3-类型检查与类型推断"><a href="#3-类型检查与类型推断" class="headerlink" title="3 类型检查与类型推断"></a>3 类型检查与类型推断</h2><p>上面提到，Lambda表达式为函数式接口提供了实现，但是Lambda表达式本身并不包含实现了哪个函数式接口的任何信息，所以需要了解Lambda表达式的实际类型。</p>
-<h3 id="3-1-类型检查"><a href="#3-1-类型检查" class="headerlink" title="3.1 类型检查"></a>3.1 类型检查</h3><p>Lambda表达式需要的类型称为<strong>目标类型</strong>。只要函数签名一致，Lambda表达式可以与很多函数式接口相关联。</p>
-<p>一张图说明类型检查的过程：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Apple&gt; <span class="variable">heavierThan150g</span> <span class="operator">=</span> filter(inventory, (Apple a) -&gt; a.getWeight() &gt; <span class="number">150</span>);</span><br></pre></td></tr></table></figure>
-
-<p><img src="/../image/type_check.png" alt="type check"></p>
-<h3 id="3-2-类型推断"><a href="#3-2-类型推断" class="headerlink" title="3.2 类型推断"></a>3.2 类型推断</h3><p>类型推断是Java 7引入的概念，&lt;&gt;操作符可使编译器在编译时根据上下文推断出参数类型。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">HashMap</span>&lt;String, Integer&gt; <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br></pre></td></tr></table></figure>
-<p>这里，声明map时，已经明确指定了范型的类型，所以在new出HashMap对象时，编译器已经知道HashMap的具体范型。</p>
-<p>Java 8中，Lambda表达式可以省略所有参数的类型。因为函数描述符可以通过目标类型来得到，所以Java编译器就可以通过上下文信息来推断出正确的参数类型，从而确定使用什么函数式接口来配合Lambda表达式。</p>
-<p>当然，Lambda表达式也可以不省略参数类型，显式指定。至于这两种方式哪一种更好呢，则取决于不同的场景，有时候省略参数类型代码更易读，有的时候显式指明参数类型则比较好。</p>
-<h2 id="4-方法引用"><a href="#4-方法引用" class="headerlink" title="4 方法引用"></a>4 方法引用</h2><h3 id="4-1-方法引用简介"><a href="#4-1-方法引用简介" class="headerlink" title="4.1 方法引用简介"></a>4.1 方法引用简介</h3><p>既然Lambda表达式可以与函数式接口相关联，作为函数式接口的函数描述符的引用，那么一个对象的方法有没有类似的表示方法呢？答案是有的，Java 8提供了方法引用(Method Referen)的表示方法。（在C语言或者是其他一些编程语言中，也有类似的概念，比如，C语言中的指向函数的指针，Python中把一个函数赋值给变量）</p>
-<p>方法引用可以重复使用现有的方法定义，并像Lambda表达式一样传递它们。</p>
-<p>方法引用通过一个::来表示，需要使用方法引用时，目标引用放在分隔符::前，方法名放在后面。</p>
-<p>一些例子：</p>
-<table>
-<thead>
-<tr>
-<th>Lambda</th>
-<th>方法引用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>() -&gt; Thread.currentThread().dumpStack()</td>
-<td>Thread.currentThread()::dumpStack</td>
-</tr>
-<tr>
-<td>(str, i) -&gt; str.substring(i)</td>
-<td>String::substring</td>
-</tr>
-<tr>
-<td>(String s) -&gt; System.out.print(s)</td>
-<td>System.out::print</td>
-</tr>
-</tbody></table>
-<h3 id="4-2-构建方法引用"><a href="#4-2-构建方法引用" class="headerlink" title="4.2 构建方法引用"></a>4.2 构建方法引用</h3><h4 id="4-2-1-方法引用主要分为3类："><a href="#4-2-1-方法引用主要分为3类：" class="headerlink" title="4.2.1 方法引用主要分为3类："></a>4.2.1 方法引用主要分为3类：</h4><ol>
-<li><p>指向静态方法引用</p>
-<p> 例如Integer.parseInt()方法，写作Integer::parseInt</p>
-</li>
-<li><p>指向任意类型方法实例的方法引用</p>
-<p> 如String中的length方法，写作String::length</p>
-</li>
-<li><p>指向已有对象的实例方法的方法引用</p>
-<p> 比如有一个Student的实例stu，有一个方法是getName，就可以写成stu::getName</p>
-</li>
-</ol>
-<p><strong>区别：</strong></p>
-<p>静态方法引用是直接引用类的静态方法，通过 “类名::方法名”的方式引用；</p>
-<p>第二种方法引用中，引用了一个对象的方法，但是这个对象本身是Lambda表达式的一个参数，不如上面的例子中，对应的Lambda表达式是(String s) -&gt; s.length()；</p>
-<p>第三种中，是在Lambda表达式中调用一个已经存在的对象的方法，上面的例子改写成Lambda表达式就是() -&gt; stu.getName()，和第二种的区别就是调用的对象的方法不是Lambda的参数。</p>
-<h4 id="4-1-2-构造方法引用"><a href="#4-1-2-构造方法引用" class="headerlink" title="4.1.2 构造方法引用"></a>4.1.2 构造方法引用</h4><p>对于一个现有的构造方法，可以利用它的名称和关键字new来创建一个方法引用：ClassName::new.</p>
-<p>它的功能和静态方法的引用类似，比如有一个无参构造方法，适合Supplier的签名，() -&gt; Apple，那么可以这样写：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Supplier</span>&lt;Apple&gt; <span class="variable">constuctor</span> <span class="operator">=</span> Apple::<span class="keyword">new</span>;</span><br><span class="line"><span class="type">Apple</span> <span class="variable">apple</span> <span class="operator">=</span> constructor.get();</span><br></pre></td></tr></table></figure>
-
-<p>它等价于Lambda表达式的写法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Supplier</span>&lt;Apple&gt; <span class="variable">constuctor</span> <span class="operator">=</span> () -&gt; <span class="keyword">new</span> <span class="title class_">Apple</span>();</span><br><span class="line"><span class="type">Apple</span> <span class="variable">apple</span> <span class="operator">=</span> constructor.get();</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-实践"><a href="#5-实践" class="headerlink" title="5 实践"></a>5 实践</h2><p>有一些菜品，存在<code>List&lt;Dish&gt; dishes</code>中，现在要将它们按照价格升序排序。</p>
-<ol>
-<li><p>在Java 8之前</p>
-<p> Java 8之前，List没有sort方法，需要借助Collection类。</p>
- <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DishComparator</span> <span class="keyword">implements</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">Collection.sort(list, <span class="keyword">new</span> <span class="title class_">DishComparator</span>());</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>Java 8中，使用来排序list</p>
-<p> Java 8之前，List没有sort方法，需要借助Collection类。</p>
- <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DishComparator</span> <span class="keyword">implements</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">list.sort(<span class="keyword">new</span> <span class="title class_">DishComparator</span>());</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>使用匿名内部类</p>
- <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort(<span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt; &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPrice() - d2.getPrice();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>使用Lambda表达式</p>
- <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort((Dish d1, Dish d2) -&gt; d1.getPrice() - d2.getPrice());</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>使用方法引用</p>
- <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">list.sort(Comparator.comparating(Dish::getPrice))</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h2 id="6-小结"><a href="#6-小结" class="headerlink" title="6 小结"></a>6 小结</h2><ul>
-<li><strong>Lambda表达式</strong>可以理解为一种匿名函数：没有名称，但有参数列表、函数主体、返回值；</li>
-<li>Lambda表达式可以让你更简洁的传递代码；</li>
-<li><strong>函数式接口</strong>就是仅仅声明了一个抽象方法的接口；</li>
-<li>只有在接收函数式接口的地方才可以使用Lambda表达式；</li>
-<li>Lambda表达式允许你直接内联，为函数式接口的抽象方法提供实现，并且将整个表达式作为函数式接口的的一个实例；</li>
-<li>Java 8自带一些常用的函数式接口，在java.util.function包里，包括Predicate<T>、Function&lt;T,R&gt;、Supplier<T>、Consumer<T>等；</li>
-<li>Lambda表达式所需要的代表的类型成为目标类型；</li>
-<li>方法引用让你重复使用现有的方法实现并直接传递它们；</li>
-<li>Comparator、Predicate、和Function等函数式接口有几个可以结合Lambda表达式的默认方法。</li>
-</ul>
-<p>–</p>
-<p>作者：Ivan J. Lee</br><br>时间：2017-11-28 00:40</p>
-]]></content>
-      <categories>
-        <category>tech</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kotlin 委托（Delegation）详解</title>
-    <url>/2026/10/23/002-kotlin-delegate/</url>
-    <content><![CDATA[<p>Kotlin 的委托是一种<strong>将职责转交给其他对象</strong>的机制，分为两大类：</p>
-<ul>
-<li><strong>属性委托（Property Delegation）</strong>：把属性的 <code>get</code> &#x2F; <code>set</code> 委托给另一个对象。</li>
-<li><strong>类委托（Class Delegation）</strong>：把接口的实现委托给另一个对象。</li>
-</ul>
-<p>委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。</p>
-<hr>
-<h2 id="一、属性委托"><a href="#一、属性委托" class="headerlink" title="一、属性委托"></a>一、属性委托</h2><h3 id="1-1-基本语法"><a href="#1-1-基本语法" class="headerlink" title="1.1 基本语法"></a>1.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span>/<span class="keyword">var</span> &lt;属性名&gt;: &lt;类型&gt; <span class="keyword">by</span> &lt;委托对象&gt;</span><br></pre></td></tr></table></figure>
-
-<p>委托对象必须提供：</p>
-<ul>
-<li><code>getValue</code>：用于 <code>val</code> 和 <code>var</code></li>
-<li><code>setValue</code>：仅用于 <code>var</code></li>
-</ul>
-<p>这两个方法可以是成员函数，也可以是扩展函数。</p>
-<h3 id="1-2-标准委托"><a href="#1-2-标准委托" class="headerlink" title="1.2 标准委托"></a>1.2 标准委托</h3><p>Kotlin 标准库提供三种常用属性委托：</p>
-<h4 id="by-lazy"><a href="#by-lazy" class="headerlink" title="by lazy"></a><code>by lazy</code></h4><p>延迟初始化，首次访问时计算，之后缓存。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> lazyValue: String <span class="keyword">by</span> lazy &#123;</span><br><span class="line">    println(<span class="string">&quot;computed!&quot;</span>)</span><br><span class="line">    <span class="string">&quot;Hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println(lazyValue) <span class="comment">// computed! Hello</span></span><br><span class="line">println(lazyValue) <span class="comment">// Hello（不重复计算）</span></span><br></pre></td></tr></table></figure>
-
-<p>线程安全模式：</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.SYNCHRONIZED) &#123; ... &#125; <span class="comment">// 默认，双重检查锁</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.PUBLICATION) &#123; ... &#125;  <span class="comment">// 多线程可多次初始化，保留一个</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.NONE) &#123; ... &#125;         <span class="comment">// 无锁，单线程</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>适用场景</strong>：单例、昂贵对象初始化、Android 中初始化 Adapter、ViewModel。</p>
-<h4 id="by-observable"><a href="#by-observable" class="headerlink" title="by observable"></a><code>by observable</code></h4><p>属性变化时回调旧值和新值。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; property, old, new -&gt;</span><br><span class="line">    println(<span class="string">&quot;<span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;Alice&quot;</span> <span class="comment">// name: init -&gt; Alice</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="by-vetoable"><a href="#by-vetoable" class="headerlink" title="by vetoable"></a><code>by vetoable</code></h4><p>属性变化时回调，返回 <code>false</code> 可阻止赋值。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, old, new -&gt;</span><br><span class="line">    new &gt;= <span class="number">0</span> <span class="comment">// 负数拒绝赋值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="by-notNull"><a href="#by-notNull" class="headerlink" title="by notNull"></a><code>by notNull</code></h4><p>用于替代 <code>lateinit</code>，支持非空类型，但可检查是否初始化。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.notNull()</span><br><span class="line"><span class="comment">// println(name) // 抛 IllegalStateException</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>适用场景</strong>：Android 中 <code>lateinit</code> 无法用于基本类型时。</p>
-<h3 id="1-3-自定义属性委托"><a href="#1-3-自定义属性委托" class="headerlink" title="1.3 自定义属性委托"></a>1.3 自定义属性委托</h3><p>实现 <code>ReadWriteProperty</code> 或 <code>ReadOnlyProperty</code> 接口：</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingProperty</span>&lt;<span class="type">T</span>&gt;(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> value: T</span><br><span class="line">) : ReadWriteProperty&lt;Any?, T&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T &#123;</span><br><span class="line">        println(<span class="string">&quot;get <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;set <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span> -&gt; <span class="variable">$newValue</span>&quot;</span>)</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>也可以直接写 <code>getValue</code> &#x2F; <code>setValue</code> 的 <code>operator</code> 方法（不实现接口）：</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SimpleDelegate</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">var</span> value: T) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T = value</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-4-编译原理"><a href="#1-4-编译原理" class="headerlink" title="1.4 编译原理"></a>1.4 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>编译后大致等价：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LoggingProperty</span> <span class="variable">name$delegate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoggingProperty</span>(<span class="string">&quot;init&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> name$delegate.getValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">setName</span><span class="params">(String value)</span> &#123;</span><br><span class="line">    name$delegate.setValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>], value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>生成一个委托对象字段。</li>
-<li>属性访问转发到 <code>getValue</code> &#x2F; <code>setValue</code>。</li>
-<li><code>$$delegatedProperties</code> 是 <code>KProperty</code> 数组，缓存属性元信息。</li>
-</ul>
-<h3 id="1-5-委托的-provideDelegate"><a href="#1-5-委托的-provideDelegate" class="headerlink" title="1.5 委托的 provideDelegate"></a>1.5 委托的 <code>provideDelegate</code></h3><p>在属性声明时执行额外逻辑：</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceDelegate</span> &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">provideDelegate</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: ResourceDelegate &#123;</span><br><span class="line">        println(<span class="string">&quot;creating delegate for <span class="subst">$&#123;property.name&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: String = <span class="string">&quot;value&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> x: String <span class="keyword">by</span> ResourceDelegate()</span><br></pre></td></tr></table></figure>
-
-<p><strong>执行顺序</strong>：<code>provideDelegate</code> → <code>getValue</code> &#x2F; <code>setValue</code>。</p>
-<p><strong>适用场景</strong>：属性名校验、依赖注入、资源绑定。</p>
-<hr>
-<h2 id="二、类委托"><a href="#二、类委托" class="headerlink" title="二、类委托"></a>二、类委托</h2><h3 id="2-1-基本语法"><a href="#2-1-基本语法" class="headerlink" title="2.1 基本语法"></a>2.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span>(<span class="keyword">private</span> <span class="keyword">val</span> base: Base) : Base <span class="keyword">by</span> base</span><br></pre></td></tr></table></figure>
-
-<p>编译器自动生成所有接口方法的转发实现。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConsolePrinter</span> : <span class="type">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingPrinter</span>(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">inner</span>: Printer) : Printer <span class="keyword">by</span> <span class="keyword">inner</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Before&quot;</span>)</span><br><span class="line">        <span class="keyword">inner</span>.print(msg)</span><br><span class="line">        println(<span class="string">&quot;After&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-2-原理"><a href="#2-2-原理" class="headerlink" title="2.2 原理"></a>2.2 原理</h3><p>类委托编译后生成：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoggingPrinter</span> <span class="keyword">implements</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Printer inner;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">print</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="comment">// 如果覆写了，则用覆写；否则自动转发</span></span><br><span class="line">        inner.print(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>特点</strong>：</p>
-<ul>
-<li>自动生成所有接口方法。</li>
-<li>只覆写需要增强的方法。</li>
-<li>委托对象可以是构造参数。</li>
-<li>支持多个接口委托。</li>
-</ul>
-<h3 id="2-3-适用场景"><a href="#2-3-适用场景" class="headerlink" title="2.3 适用场景"></a>2.3 适用场景</h3><ul>
-<li>装饰器模式（日志、缓存、监控）。</li>
-<li>组合优于继承。</li>
-<li>包装第三方库。</li>
-</ul>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CachedRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> delegate: Repository</span><br><span class="line">) : Repository <span class="keyword">by</span> delegate &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> cache = mutableMapOf&lt;<span class="built_in">Long</span>, User&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUser</span><span class="params">(id: <span class="type">Long</span>)</span></span>: User? &#123;</span><br><span class="line">        <span class="keyword">return</span> cache[id] ?: delegate.getUser(id)?.also &#123; cache[id] = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="三、属性委托-vs-类委托"><a href="#三、属性委托-vs-类委托" class="headerlink" title="三、属性委托 vs 类委托"></a>三、属性委托 vs 类委托</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>属性委托</th>
-<th>类委托</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>作用对象</td>
-<td>单个属性</td>
-<td>整个接口实现</td>
-</tr>
-<tr>
-<td>关键字</td>
-<td><code>by</code> 在属性声明处</td>
-<td><code>by</code> 在类声明处</td>
-</tr>
-<tr>
-<td>实现方式</td>
-<td><code>getValue</code> &#x2F; <code>setValue</code></td>
-<td>自动转发接口方法</td>
-</tr>
-<tr>
-<td>典型用途</td>
-<td><code>lazy</code>、<code>observable</code>、<code>vetoable</code></td>
-<td>装饰器、组合复用</td>
-</tr>
-<tr>
-<td>编译产物</td>
-<td>委托字段 + 转发访问器</td>
-<td>转发方法</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="四、委托与-lateinit、lazy-对比"><a href="#四、委托与-lateinit、lazy-对比" class="headerlink" title="四、委托与 lateinit、lazy 对比"></a>四、委托与 <code>lateinit</code>、<code>lazy</code> 对比</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th><code>lateinit</code></th>
-<th><code>by lazy</code></th>
-<th>自定义委托</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>适用类型</td>
-<td>非空引用类型</td>
-<td>任意</td>
-<td>任意</td>
-</tr>
-<tr>
-<td>可变性</td>
-<td><code>var</code></td>
-<td><code>val</code></td>
-<td><code>var</code>&#x2F;<code>val</code></td>
-</tr>
-<tr>
-<td>初始化时机</td>
-<td>手动赋值</td>
-<td>首次访问</td>
-<td>自定义</td>
-</tr>
-<tr>
-<td>线程安全</td>
-<td>否</td>
-<td>可配置</td>
-<td>自定义</td>
-</tr>
-<tr>
-<td>能否重置</td>
-<td>否</td>
-<td>否</td>
-<td>自定义</td>
-</tr>
-<tr>
-<td>能否用于基本类型</td>
-<td>否</td>
-<td>是</td>
-<td>是</td>
-</tr>
-</tbody></table>
-<hr>
-<h2 id="五、委托在-Android-中的典型应用"><a href="#五、委托在-Android-中的典型应用" class="headerlink" title="五、委托在 Android 中的典型应用"></a>五、委托在 Android 中的典型应用</h2><h3 id="5-1-viewModels、activityViewModels"><a href="#5-1-viewModels、activityViewModels" class="headerlink" title="5.1 viewModels、activityViewModels"></a>5.1 <code>viewModels</code>、<code>activityViewModels</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> viewModel: MyViewModel <span class="keyword">by</span> viewModels()</span><br></pre></td></tr></table></figure>
-
-<p><code>viewModels</code> 是属性委托，延迟获取 ViewModel。</p>
-<h3 id="5-2-SharedPreferences-委托"><a href="#5-2-SharedPreferences-委托" class="headerlink" title="5.2 SharedPreferences 委托"></a>5.2 <code>SharedPreferences</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> SharedPreferences.<span class="title">stringPref</span><span class="params">(key: <span class="type">String</span>, default: <span class="type">String</span> = <span class="string">&quot;&quot;</span>)</span></span> =</span><br><span class="line">    <span class="keyword">object</span> : ReadWriteProperty&lt;Any, String&gt; &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span> = getString(key, default) ?: default</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">            edit().putString(key, value).apply()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="5-3-arguments-委托"><a href="#5-3-arguments-委托" class="headerlink" title="5.3 arguments 委托"></a>5.3 <code>arguments</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> userId: String <span class="keyword">by</span> arguments.getString(<span class="string">&quot;userId&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<h3 id="5-4-Compose-中的-by-remember"><a href="#5-4-Compose-中的-by-remember" class="headerlink" title="5.4 Compose 中的 by remember"></a>5.4 Compose 中的 <code>by remember</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> count <span class="keyword">by</span> remember &#123; mutableStateOf(<span class="number">0</span>) &#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>by</code> 是委托，<code>MutableState</code> 提供 <code>getValue/setValue</code>。</p>
-<hr>
-<h2 id="六、常见面试题与答案"><a href="#六、常见面试题与答案" class="headerlink" title="六、常见面试题与答案"></a>六、常见面试题与答案</h2><p><strong>Q1：Kotlin 委托是什么？</strong><br>A：把职责转交给其他对象，分属性委托和类委托。属性委托把 <code>get/set</code> 委托给 <code>getValue/setValue</code>；类委托把接口实现转发给另一个对象。</p>
-<p><strong>Q2：属性委托需要实现什么？</strong><br>A：<code>val</code> 需要 <code>getValue</code>；<code>var</code> 需要 <code>getValue</code> 和 <code>setValue</code>。可实现 <code>ReadOnlyProperty</code> &#x2F; <code>ReadWriteProperty</code>。</p>
-<p><strong>Q3：<code>by lazy</code> 是线程安全的吗？</strong><br>A：默认 <code>SYNCHRONIZED</code> 线程安全；可选 <code>PUBLICATION</code>、<code>NONE</code>。</p>
-<p><strong>Q4：<code>by lazy</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>lazy</code> 用于 <code>val</code>，首次访问初始化，可线程安全；<code>lateinit</code> 用于 <code>var</code>，手动赋值，不能用于基本类型。</p>
-<p><strong>Q5：<code>observable</code> 和 <code>vetoable</code> 区别？</strong><br>A：<code>vetoable</code> 的 <code>setValue</code> 返回 <code>Boolean</code>，<code>false</code> 阻止赋值；<code>observable</code> 只通知。</p>
-<p><strong>Q6：类委托底层如何实现？</strong><br>A：编译器生成所有接口方法的转发方法，调用委托对象。</p>
-<p><strong>Q7：类委托和继承区别？</strong><br>A：委托是组合，避免脆弱基类，只暴露接口；继承耦合父类实现。</p>
-<p><strong>Q8：<code>provideDelegate</code> 作用？</strong><br>A：在属性声明时执行额外逻辑，如校验、注入。执行在 <code>getValue/setValue</code> 之前。</p>
-<p><strong>Q9：委托属性编译后长什么样？</strong><br>A：生成委托字段，属性访问转发到 <code>getValue/setValue</code>。</p>
-<p><strong>Q10：Android 中哪些地方用了委托？</strong><br>A：<code>by viewModels()</code>、<code>by arguments</code>、<code>by remember</code>、<code>SharedPreferences</code> 委托。</p>
-<p><strong>Q11：属性委托能用于局部变量吗？</strong><br>A：能，Kotlin 1.1+ 支持局部委托变量。</p>
-<p><strong>Q12：<code>Delegates.notNull</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>notNull</code> 支持基本类型，<code>lateinit</code> 不支持；<code>notNull</code> 是委托，<code>lateinit</code> 是语言特性。</p>
-<hr>
-<h2 id="七、完整示例"><a href="#七、完整示例" class="headerlink" title="七、完整示例"></a>七、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; _, old, new -&gt;</span><br><span class="line">        println(<span class="string">&quot;name: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, _, new -&gt; new &gt;= <span class="number">0</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Long</span> <span class="keyword">by</span> lazy &#123; System.currentTimeMillis() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User()</span><br><span class="line">    user.name = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    user.age = -<span class="number">1</span> <span class="comment">// 拒绝</span></span><br><span class="line">    println(user.id)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><ul>
-<li>委托是 Kotlin 替代继承、实现组合复用的核心机制。</li>
-<li>属性委托：<code>lazy</code>、<code>observable</code>、<code>vetoable</code>、<code>notNull</code>、自定义。</li>
-<li>类委托：<code>class Derived(base: Base) : Base by base</code>，自动转发接口。</li>
-<li>编译原理：属性委托生成委托字段和转发访问器；类委托生成转发方法。</li>
-<li>Android 中大量使用：<code>viewModels</code>、<code>arguments</code>、<code>remember</code>、SharedPreferences。</li>
-<li>面试高频：<code>lazy</code> 线程安全、<code>observable</code> vs <code>vetoable</code>、<code>provideDelegate</code>、类委托与继承区别。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Kotlin</category>
-      </categories>
-      <tags>
-        <tag>Kotlin</tag>
       </tags>
   </entry>
   <entry>
@@ -779,6 +573,212 @@
 <li>与 <code>typealias</code> 不同，提供真实类型安全；与 <code>data class</code> 不同，无对象头。</li>
 <li>Java 互操作不便，给 Java 的 API 尽量不暴露。</li>
 <li>面试高频：装箱场景、与 data class 区别、与 typealias 区别、限制。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin 委托（Delegation）详解</title>
+    <url>/2026/10/23/002-kotlin-delegate/</url>
+    <content><![CDATA[<p>Kotlin 的委托是一种<strong>将职责转交给其他对象</strong>的机制，分为两大类：</p>
+<ul>
+<li><strong>属性委托（Property Delegation）</strong>：把属性的 <code>get</code> &#x2F; <code>set</code> 委托给另一个对象。</li>
+<li><strong>类委托（Class Delegation）</strong>：把接口的实现委托给另一个对象。</li>
+</ul>
+<p>委托是 Kotlin 替代继承、实现组合复用的重要手段，也是面试高频考点。</p>
+<hr>
+<h2 id="一、属性委托"><a href="#一、属性委托" class="headerlink" title="一、属性委托"></a>一、属性委托</h2><h3 id="1-1-基本语法"><a href="#1-1-基本语法" class="headerlink" title="1.1 基本语法"></a>1.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span>/<span class="keyword">var</span> &lt;属性名&gt;: &lt;类型&gt; <span class="keyword">by</span> &lt;委托对象&gt;</span><br></pre></td></tr></table></figure>
+
+<p>委托对象必须提供：</p>
+<ul>
+<li><code>getValue</code>：用于 <code>val</code> 和 <code>var</code></li>
+<li><code>setValue</code>：仅用于 <code>var</code></li>
+</ul>
+<p>这两个方法可以是成员函数，也可以是扩展函数。</p>
+<h3 id="1-2-标准委托"><a href="#1-2-标准委托" class="headerlink" title="1.2 标准委托"></a>1.2 标准委托</h3><p>Kotlin 标准库提供三种常用属性委托：</p>
+<h4 id="by-lazy"><a href="#by-lazy" class="headerlink" title="by lazy"></a><code>by lazy</code></h4><p>延迟初始化，首次访问时计算，之后缓存。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> lazyValue: String <span class="keyword">by</span> lazy &#123;</span><br><span class="line">    println(<span class="string">&quot;computed!&quot;</span>)</span><br><span class="line">    <span class="string">&quot;Hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">println(lazyValue) <span class="comment">// computed! Hello</span></span><br><span class="line">println(lazyValue) <span class="comment">// Hello（不重复计算）</span></span><br></pre></td></tr></table></figure>
+
+<p>线程安全模式：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.SYNCHRONIZED) &#123; ... &#125; <span class="comment">// 默认，双重检查锁</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.PUBLICATION) &#123; ... &#125;  <span class="comment">// 多线程可多次初始化，保留一个</span></span><br><span class="line"><span class="keyword">val</span> value <span class="keyword">by</span> lazy(LazyThreadSafetyMode.NONE) &#123; ... &#125;         <span class="comment">// 无锁，单线程</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：单例、昂贵对象初始化、Android 中初始化 Adapter、ViewModel。</p>
+<h4 id="by-observable"><a href="#by-observable" class="headerlink" title="by observable"></a><code>by observable</code></h4><p>属性变化时回调旧值和新值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; property, old, new -&gt;</span><br><span class="line">    println(<span class="string">&quot;<span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;Alice&quot;</span> <span class="comment">// name: init -&gt; Alice</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="by-vetoable"><a href="#by-vetoable" class="headerlink" title="by vetoable"></a><code>by vetoable</code></h4><p>属性变化时回调，返回 <code>false</code> 可阻止赋值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, old, new -&gt;</span><br><span class="line">    new &gt;= <span class="number">0</span> <span class="comment">// 负数拒绝赋值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="by-notNull"><a href="#by-notNull" class="headerlink" title="by notNull"></a><code>by notNull</code></h4><p>用于替代 <code>lateinit</code>，支持非空类型，但可检查是否初始化。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.notNull()</span><br><span class="line"><span class="comment">// println(name) // 抛 IllegalStateException</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>适用场景</strong>：Android 中 <code>lateinit</code> 无法用于基本类型时。</p>
+<h3 id="1-3-自定义属性委托"><a href="#1-3-自定义属性委托" class="headerlink" title="1.3 自定义属性委托"></a>1.3 自定义属性委托</h3><p>实现 <code>ReadWriteProperty</code> 或 <code>ReadOnlyProperty</code> 接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingProperty</span>&lt;<span class="type">T</span>&gt;(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> value: T</span><br><span class="line">) : ReadWriteProperty&lt;Any?, T&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T &#123;</span><br><span class="line">        println(<span class="string">&quot;get <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;set <span class="subst">$&#123;property.name&#125;</span>: <span class="variable">$value</span> -&gt; <span class="variable">$newValue</span>&quot;</span>)</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>也可以直接写 <code>getValue</code> &#x2F; <code>setValue</code> 的 <code>operator</code> 方法（不实现接口）：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SimpleDelegate</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">private</span> <span class="keyword">var</span> value: T) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: T = value</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, newValue: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        value = newValue</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-编译原理"><a href="#1-4-编译原理" class="headerlink" title="1.4 编译原理"></a>1.4 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String <span class="keyword">by</span> LoggingProperty(<span class="string">&quot;init&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LoggingProperty</span> <span class="variable">name$delegate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoggingProperty</span>(<span class="string">&quot;init&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> name$delegate.getValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">setName</span><span class="params">(String value)</span> &#123;</span><br><span class="line">    name$delegate.setValue(<span class="built_in">this</span>, $$delegatedProperties[<span class="number">0</span>], value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个委托对象字段。</li>
+<li>属性访问转发到 <code>getValue</code> &#x2F; <code>setValue</code>。</li>
+<li><code>$$delegatedProperties</code> 是 <code>KProperty</code> 数组，缓存属性元信息。</li>
+</ul>
+<h3 id="1-5-委托的-provideDelegate"><a href="#1-5-委托的-provideDelegate" class="headerlink" title="1.5 委托的 provideDelegate"></a>1.5 委托的 <code>provideDelegate</code></h3><p>在属性声明时执行额外逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceDelegate</span> &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">provideDelegate</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: ResourceDelegate &#123;</span><br><span class="line">        println(<span class="string">&quot;creating delegate for <span class="subst">$&#123;property.name&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: String = <span class="string">&quot;value&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> x: String <span class="keyword">by</span> ResourceDelegate()</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行顺序</strong>：<code>provideDelegate</code> → <code>getValue</code> &#x2F; <code>setValue</code>。</p>
+<p><strong>适用场景</strong>：属性名校验、依赖注入、资源绑定。</p>
+<hr>
+<h2 id="二、类委托"><a href="#二、类委托" class="headerlink" title="二、类委托"></a>二、类委托</h2><h3 id="2-1-基本语法"><a href="#2-1-基本语法" class="headerlink" title="2.1 基本语法"></a>2.1 基本语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span>(<span class="keyword">private</span> <span class="keyword">val</span> base: Base) : Base <span class="keyword">by</span> base</span><br></pre></td></tr></table></figure>
+
+<p>编译器自动生成所有接口方法的转发实现。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConsolePrinter</span> : <span class="type">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LoggingPrinter</span>(<span class="keyword">private</span> <span class="keyword">val</span> <span class="keyword">inner</span>: Printer) : Printer <span class="keyword">by</span> <span class="keyword">inner</span> &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">print</span><span class="params">(msg: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Before&quot;</span>)</span><br><span class="line">        <span class="keyword">inner</span>.print(msg)</span><br><span class="line">        println(<span class="string">&quot;After&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-原理"><a href="#2-2-原理" class="headerlink" title="2.2 原理"></a>2.2 原理</h3><p>类委托编译后生成：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoggingPrinter</span> <span class="keyword">implements</span> <span class="title class_">Printer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Printer inner;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">print</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">        <span class="comment">// 如果覆写了，则用覆写；否则自动转发</span></span><br><span class="line">        inner.print(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<ul>
+<li>自动生成所有接口方法。</li>
+<li>只覆写需要增强的方法。</li>
+<li>委托对象可以是构造参数。</li>
+<li>支持多个接口委托。</li>
+</ul>
+<h3 id="2-3-适用场景"><a href="#2-3-适用场景" class="headerlink" title="2.3 适用场景"></a>2.3 适用场景</h3><ul>
+<li>装饰器模式（日志、缓存、监控）。</li>
+<li>组合优于继承。</li>
+<li>包装第三方库。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CachedRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> delegate: Repository</span><br><span class="line">) : Repository <span class="keyword">by</span> delegate &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> cache = mutableMapOf&lt;<span class="built_in">Long</span>, User&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUser</span><span class="params">(id: <span class="type">Long</span>)</span></span>: User? &#123;</span><br><span class="line">        <span class="keyword">return</span> cache[id] ?: delegate.getUser(id)?.also &#123; cache[id] = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、属性委托-vs-类委托"><a href="#三、属性委托-vs-类委托" class="headerlink" title="三、属性委托 vs 类委托"></a>三、属性委托 vs 类委托</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>属性委托</th>
+<th>类委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用对象</td>
+<td>单个属性</td>
+<td>整个接口实现</td>
+</tr>
+<tr>
+<td>关键字</td>
+<td><code>by</code> 在属性声明处</td>
+<td><code>by</code> 在类声明处</td>
+</tr>
+<tr>
+<td>实现方式</td>
+<td><code>getValue</code> &#x2F; <code>setValue</code></td>
+<td>自动转发接口方法</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td><code>lazy</code>、<code>observable</code>、<code>vetoable</code></td>
+<td>装饰器、组合复用</td>
+</tr>
+<tr>
+<td>编译产物</td>
+<td>委托字段 + 转发访问器</td>
+<td>转发方法</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、委托与-lateinit、lazy-对比"><a href="#四、委托与-lateinit、lazy-对比" class="headerlink" title="四、委托与 lateinit、lazy 对比"></a>四、委托与 <code>lateinit</code>、<code>lazy</code> 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>lateinit</code></th>
+<th><code>by lazy</code></th>
+<th>自定义委托</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用类型</td>
+<td>非空引用类型</td>
+<td>任意</td>
+<td>任意</td>
+</tr>
+<tr>
+<td>可变性</td>
+<td><code>var</code></td>
+<td><code>val</code></td>
+<td><code>var</code>&#x2F;<code>val</code></td>
+</tr>
+<tr>
+<td>初始化时机</td>
+<td>手动赋值</td>
+<td>首次访问</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>否</td>
+<td>可配置</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否重置</td>
+<td>否</td>
+<td>否</td>
+<td>自定义</td>
+</tr>
+<tr>
+<td>能否用于基本类型</td>
+<td>否</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、委托在-Android-中的典型应用"><a href="#五、委托在-Android-中的典型应用" class="headerlink" title="五、委托在 Android 中的典型应用"></a>五、委托在 Android 中的典型应用</h2><h3 id="5-1-viewModels、activityViewModels"><a href="#5-1-viewModels、activityViewModels" class="headerlink" title="5.1 viewModels、activityViewModels"></a>5.1 <code>viewModels</code>、<code>activityViewModels</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> viewModel: MyViewModel <span class="keyword">by</span> viewModels()</span><br></pre></td></tr></table></figure>
+
+<p><code>viewModels</code> 是属性委托，延迟获取 ViewModel。</p>
+<h3 id="5-2-SharedPreferences-委托"><a href="#5-2-SharedPreferences-委托" class="headerlink" title="5.2 SharedPreferences 委托"></a>5.2 <code>SharedPreferences</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> SharedPreferences.<span class="title">stringPref</span><span class="params">(key: <span class="type">String</span>, default: <span class="type">String</span> = <span class="string">&quot;&quot;</span>)</span></span> =</span><br><span class="line">    <span class="keyword">object</span> : ReadWriteProperty&lt;Any, String&gt; &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span> = getString(key, default) ?: default</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>, property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">            edit().putString(key, value).apply()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-arguments-委托"><a href="#5-3-arguments-委托" class="headerlink" title="5.3 arguments 委托"></a>5.3 <code>arguments</code> 委托</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> userId: String <span class="keyword">by</span> arguments.getString(<span class="string">&quot;userId&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-Compose-中的-by-remember"><a href="#5-4-Compose-中的-by-remember" class="headerlink" title="5.4 Compose 中的 by remember"></a>5.4 Compose 中的 <code>by remember</code></h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> count <span class="keyword">by</span> remember &#123; mutableStateOf(<span class="number">0</span>) &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>by</code> 是委托，<code>MutableState</code> 提供 <code>getValue/setValue</code>。</p>
+<hr>
+<h2 id="六、常见面试题与答案"><a href="#六、常见面试题与答案" class="headerlink" title="六、常见面试题与答案"></a>六、常见面试题与答案</h2><p><strong>Q1：Kotlin 委托是什么？</strong><br>A：把职责转交给其他对象，分属性委托和类委托。属性委托把 <code>get/set</code> 委托给 <code>getValue/setValue</code>；类委托把接口实现转发给另一个对象。</p>
+<p><strong>Q2：属性委托需要实现什么？</strong><br>A：<code>val</code> 需要 <code>getValue</code>；<code>var</code> 需要 <code>getValue</code> 和 <code>setValue</code>。可实现 <code>ReadOnlyProperty</code> &#x2F; <code>ReadWriteProperty</code>。</p>
+<p><strong>Q3：<code>by lazy</code> 是线程安全的吗？</strong><br>A：默认 <code>SYNCHRONIZED</code> 线程安全；可选 <code>PUBLICATION</code>、<code>NONE</code>。</p>
+<p><strong>Q4：<code>by lazy</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>lazy</code> 用于 <code>val</code>，首次访问初始化，可线程安全；<code>lateinit</code> 用于 <code>var</code>，手动赋值，不能用于基本类型。</p>
+<p><strong>Q5：<code>observable</code> 和 <code>vetoable</code> 区别？</strong><br>A：<code>vetoable</code> 的 <code>setValue</code> 返回 <code>Boolean</code>，<code>false</code> 阻止赋值；<code>observable</code> 只通知。</p>
+<p><strong>Q6：类委托底层如何实现？</strong><br>A：编译器生成所有接口方法的转发方法，调用委托对象。</p>
+<p><strong>Q7：类委托和继承区别？</strong><br>A：委托是组合，避免脆弱基类，只暴露接口；继承耦合父类实现。</p>
+<p><strong>Q8：<code>provideDelegate</code> 作用？</strong><br>A：在属性声明时执行额外逻辑，如校验、注入。执行在 <code>getValue/setValue</code> 之前。</p>
+<p><strong>Q9：委托属性编译后长什么样？</strong><br>A：生成委托字段，属性访问转发到 <code>getValue/setValue</code>。</p>
+<p><strong>Q10：Android 中哪些地方用了委托？</strong><br>A：<code>by viewModels()</code>、<code>by arguments</code>、<code>by remember</code>、<code>SharedPreferences</code> 委托。</p>
+<p><strong>Q11：属性委托能用于局部变量吗？</strong><br>A：能，Kotlin 1.1+ 支持局部委托变量。</p>
+<p><strong>Q12：<code>Delegates.notNull</code> 和 <code>lateinit</code> 区别？</strong><br>A：<code>notNull</code> 支持基本类型，<code>lateinit</code> 不支持；<code>notNull</code> 是委托，<code>lateinit</code> 是语言特性。</p>
+<hr>
+<h2 id="七、完整示例"><a href="#七、完整示例" class="headerlink" title="七、完整示例"></a>七、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String <span class="keyword">by</span> Delegates.observable(<span class="string">&quot;init&quot;</span>) &#123; _, old, new -&gt;</span><br><span class="line">        println(<span class="string">&quot;name: <span class="variable">$old</span> -&gt; <span class="variable">$new</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> age: <span class="built_in">Int</span> <span class="keyword">by</span> Delegates.vetoable(<span class="number">0</span>) &#123; _, _, new -&gt; new &gt;= <span class="number">0</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Long</span> <span class="keyword">by</span> lazy &#123; System.currentTimeMillis() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User()</span><br><span class="line">    user.name = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    user.age = -<span class="number">1</span> <span class="comment">// 拒绝</span></span><br><span class="line">    println(user.id)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><ul>
+<li>委托是 Kotlin 替代继承、实现组合复用的核心机制。</li>
+<li>属性委托：<code>lazy</code>、<code>observable</code>、<code>vetoable</code>、<code>notNull</code>、自定义。</li>
+<li>类委托：<code>class Derived(base: Base) : Base by base</code>，自动转发接口。</li>
+<li>编译原理：属性委托生成委托字段和转发访问器；类委托生成转发方法。</li>
+<li>Android 中大量使用：<code>viewModels</code>、<code>arguments</code>、<code>remember</code>、SharedPreferences。</li>
+<li>面试高频：<code>lazy</code> 线程安全、<code>observable</code> vs <code>vetoable</code>、<code>provideDelegate</code>、类委托与继承区别。</li>
 </ul>
 ]]></content>
       <categories>
@@ -1003,7 +1003,7 @@
     <content><![CDATA[<p><em>本文出处<a href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#116;&#64;&#103;&#x69;&#116;&#104;&#117;&#x62;&#x2e;&#x63;&#x6f;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#x74;&#64;&#103;&#105;&#x74;&#x68;&#117;&#x62;&#46;&#99;&#x6f;&#x6d;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
@@ -1345,6 +1345,193 @@ Layout</center>
       </categories>
       <tags>
         <tag>Android</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin 对象声明与对象表达式</title>
+    <url>/2026/10/24/002-kotlin-objects/</url>
+    <content><![CDATA[<h1 id="Kotlin-对象声明与对象表达式"><a href="#Kotlin-对象声明与对象表达式" class="headerlink" title="Kotlin 对象声明与对象表达式"></a>Kotlin 对象声明与对象表达式</h1><p>Kotlin 用 <code>object</code> 关键字同时支持两种截然不同的东西：<strong>对象声明（Object Declaration）</strong> 和 <strong>对象表达式（Object Expression）</strong>。它们语法相似，但语义和用途完全不同，是面试高频考点。</p>
+<hr>
+<h2 id="1-核心区别速览"><a href="#1-核心区别速览" class="headerlink" title="1. 核心区别速览"></a>1. 核心区别速览</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>对象声明</th>
+<th>对象表达式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>关键字</td>
+<td><code>object Foo</code></td>
+<td><code>object : Bar { }</code> 或 <code>object { }</code></td>
+</tr>
+<tr>
+<td>本质</td>
+<td>单例类，编译后有 <code>INSTANCE</code> 静态字段</td>
+<td>匿名内部类，每次执行创建新实例</td>
+</tr>
+<tr>
+<td>实例数量</td>
+<td>全局唯一</td>
+<td>每次求值都新创建一个</td>
+</tr>
+<tr>
+<td>是否有名字</td>
+<td>有，通过名字访问</td>
+<td>通常匿名，可赋值给变量</td>
+</tr>
+<tr>
+<td>能否继承&#x2F;实现</td>
+<td>能</td>
+<td>能</td>
+</tr>
+<tr>
+<td>能否捕获外部变量</td>
+<td>不能</td>
+<td>能（闭包）</td>
+</tr>
+<tr>
+<td>初始化时机</td>
+<td>首次访问时惰性初始化，线程安全</td>
+<td>每次执行到时创建</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>单例、工具类、伴生对象</td>
+<td>匿名监听器、临时实现、Adapter</td>
+</tr>
+<tr>
+<td>与 Java 对应</td>
+<td>静态单例</td>
+<td>匿名内部类</td>
+</tr>
+</tbody></table>
+<p><strong>一句话记忆</strong>：<br><strong>对象声明是单例，对象表达式是匿名内部类。</strong></p>
+<hr>
+<h2 id="2-对象声明（Object-Declaration）"><a href="#2-对象声明（Object-Declaration）" class="headerlink" title="2. 对象声明（Object Declaration）"></a>2. 对象声明（Object Declaration）</h2><h3 id="2-1-语法"><a href="#2-1-语法" class="headerlink" title="2.1 语法"></a>2.1 语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">val</span> name = <span class="string">&quot;Singleton&quot;</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">doSomething</span><span class="params">()</span></span> &#123; println(<span class="string">&quot;Doing&quot;</span>) &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line">Singleton.doSomething()</span><br><span class="line">println(Singleton.name)</span><br></pre></td></tr></table></figure>
+
+<p>对象声明可以继承类或实现接口：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Logger</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">log</span><span class="params">(msg: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">object</span> ConsoleLogger : Logger &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">log</span><span class="params">(msg: <span class="type">String</span>)</span></span> = println(msg)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-编译原理"><a href="#2-2-编译原理" class="headerlink" title="2.2 编译原理"></a>2.2 编译原理</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">val</span> name = <span class="string">&quot;Singleton&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Singleton</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Singleton</span> <span class="variable">INSTANCE</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Singleton</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;Singleton&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">private</span> <span class="title function_">Singleton</span><span class="params">()</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成一个 <code>final</code> 类。</li>
+<li>私有构造器，防止外部实例化。</li>
+<li>静态字段 <code>INSTANCE</code> 持有唯一实例。</li>
+<li>首次访问 <code>Singleton.INSTANCE</code> 时初始化，<strong>线程安全</strong>（JVM 类加载机制保证）。</li>
+</ul>
+<h3 id="2-3-对象声明的种类"><a href="#2-3-对象声明的种类" class="headerlink" title="2.3 对象声明的种类"></a>2.3 对象声明的种类</h3><ol>
+<li><strong>普通对象声明</strong>：<code>object Foo { }</code></li>
+<li><strong>伴生对象</strong>：<code>companion object { }</code>，与外部类关联，成员可通过外部类名访问。</li>
+<li><strong>数据对象</strong>（Kotlin 1.9+）：<code>data object Foo { }</code>，自动生成 <code>toString/equals/hashCode</code>，常用于密封类。</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">State</span> &#123;</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">object</span> Loading : State</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Success</span>(<span class="keyword">val</span> <span class="keyword">data</span>: String) : State</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-使用场景"><a href="#2-4-使用场景" class="headerlink" title="2.4 使用场景"></a>2.4 使用场景</h3><ul>
+<li>单例模式（最常用）。</li>
+<li>工具类、常量集合。</li>
+<li>伴生对象。</li>
+<li>接口的默认实现对象。</li>
+<li>密封类的无状态子类（<code>data object</code>）。</li>
+</ul>
+<h3 id="2-5-注意点"><a href="#2-5-注意点" class="headerlink" title="2.5 注意点"></a>2.5 注意点</h3><ul>
+<li>对象声明不能有构造器（因为只有一个实例）。</li>
+<li>对象声明可以嵌套在类中，但它是<strong>静态单例</strong>，不持有外部类实例引用。</li>
+<li>对象声明可以访问外部类的静态成员（如伴生对象），但不能访问实例成员。</li>
+<li>对象声明可以定义 <code>init</code> 块，在首次访问时执行。</li>
+</ul>
+<hr>
+<h2 id="3-对象表达式（Object-Expression）"><a href="#3-对象表达式（Object-Expression）" class="headerlink" title="3. 对象表达式（Object Expression）"></a>3. 对象表达式（Object Expression）</h2><h3 id="3-1-语法"><a href="#3-1-语法" class="headerlink" title="3.1 语法"></a>3.1 语法</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 实现接口</span></span><br><span class="line"><span class="keyword">val</span> listener = <span class="keyword">object</span> : View.OnClickListener &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>?)</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Clicked&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继承类</span></span><br><span class="line"><span class="keyword">val</span> runnable = <span class="keyword">object</span> : Thread() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line">        println(<span class="string">&quot;Running&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不继承任何东西，纯匿名对象</span></span><br><span class="line"><span class="keyword">val</span> obj = <span class="keyword">object</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> x = <span class="number">1</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">foo</span><span class="params">()</span></span> = <span class="string">&quot;foo&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-编译原理"><a href="#3-2-编译原理" class="headerlink" title="3.2 编译原理"></a>3.2 编译原理</h3><p>对象表达式编译为<strong>匿名内部类</strong>。每次执行到该表达式时，创建一个新实例。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createListener</span><span class="params">()</span></span>: View.OnClickListener &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">object</span> : View.OnClickListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>?)</span></span> &#123; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次调用 <code>createListener()</code> 都会返回不同的对象。</p>
+<h3 id="3-3-捕获外部变量（闭包）"><a href="#3-3-捕获外部变量（闭包）" class="headerlink" title="3.3 捕获外部变量（闭包）"></a>3.3 捕获外部变量（闭包）</h3><p>对象表达式可以访问并捕获外部作用域的变量：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createCounter</span><span class="params">()</span></span>: () -&gt; <span class="built_in">Int</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">object</span> : () -&gt; <span class="built_in">Int</span> &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">()</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">            count++          <span class="comment">// 捕获外部变量</span></span><br><span class="line">            <span class="keyword">return</span> count</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对象声明不能这样做，因为它没有外部作用域。</p>
+<h3 id="3-4-使用场景"><a href="#3-4-使用场景" class="headerlink" title="3.4 使用场景"></a>3.4 使用场景</h3><ul>
+<li>匿名内部类（监听器、回调、Runnable）。</li>
+<li>临时实现接口或抽象类。</li>
+<li>需要访问外部变量的场合。</li>
+<li>作为局部变量或参数。</li>
+</ul>
+<h3 id="3-5-注意点"><a href="#3-5-注意点" class="headerlink" title="3.5 注意点"></a>3.5 注意点</h3><ul>
+<li>对象表达式每次执行都会创建新实例。</li>
+<li>如果在 Activity&#x2F;Fragment 中创建并持有外部引用，可能引起内存泄漏。</li>
+<li>对象表达式可以继承类或实现接口，但只能继承一个类，可实现多个接口。</li>
+<li>对象表达式没有名字，但可以赋值给变量，通过变量访问。</li>
+<li>如果对象表达式作为局部变量，其类型是匿名的，只能通过变量访问成员；如果作为参数，类型是声明的父类型。</li>
+</ul>
+<hr>
+<h2 id="4-对象声明-vs-对象表达式：代码对比"><a href="#4-对象声明-vs-对象表达式：代码对比" class="headerlink" title="4. 对象声明 vs 对象表达式：代码对比"></a>4. 对象声明 vs 对象表达式：代码对比</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 对象声明：单例</span></span><br><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line">    <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">increment</span><span class="params">()</span></span> &#123; count++ &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    Singleton.increment()</span><br><span class="line">    Singleton.increment()</span><br><span class="line">    println(Singleton.count) <span class="comment">// 2</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对象表达式：每次新实例</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">makeCounter</span><span class="params">()</span></span> = <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> count = <span class="number">0</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">increment</span><span class="params">()</span></span> &#123; count++ &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> c1 = makeCounter()</span><br><span class="line">    <span class="keyword">val</span> c2 = makeCounter()</span><br><span class="line">    c1.increment()</span><br><span class="line">    c1.increment()</span><br><span class="line">    println(c1.count) <span class="comment">// 2</span></span><br><span class="line">    println(c2.count) <span class="comment">// 0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-与-Java-的对比"><a href="#5-与-Java-的对比" class="headerlink" title="5. 与 Java 的对比"></a>5. 与 Java 的对比</h2><table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Java 对应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>object Singleton { }</code></td>
+<td><code>static</code> 单例（<code>INSTANCE</code> 字段）</td>
+</tr>
+<tr>
+<td><code>object : Interface { }</code></td>
+<td><code>new Interface() { }</code> 匿名内部类</td>
+</tr>
+<tr>
+<td><code>companion object { }</code></td>
+<td><code>static</code> 成员 + 单例</td>
+</tr>
+<tr>
+<td><code>data object</code></td>
+<td>无直接对应</td>
+</tr>
+</tbody></table>
+<p>Java 调用 Kotlin 对象声明：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Singleton.INSTANCE.doSomething();</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-常见面试题与答案"><a href="#6-常见面试题与答案" class="headerlink" title="6. 常见面试题与答案"></a>6. 常见面试题与答案</h2><p><strong>Q1：对象声明和对象表达式的区别？</strong><br>A：对象声明是单例，编译后有 <code>INSTANCE</code> 静态字段，全局唯一；对象表达式是匿名内部类，每次执行创建新实例，可捕获外部变量。</p>
+<p><strong>Q2：对象声明是线程安全的吗？</strong><br>A：是。JVM 类加载机制保证静态初始化线程安全，首次访问时初始化一次。</p>
+<p><strong>Q3：对象表达式能捕获外部变量吗？对象声明呢？</strong><br>A：对象表达式能捕获外部作用域变量（闭包）；对象声明不能，因为它没有外部作用域。</p>
+<p><strong>Q4：对象声明能继承类吗？</strong><br>A：能，可以继承一个类并实现多个接口。</p>
+<p><strong>Q5：对象表达式每次都会创建新对象吗？</strong><br>A：是，每次执行到对象表达式都会创建新实例。</p>
+<p><strong>Q6：对象声明能用在什么地方？</strong><br>A：单例、工具类、伴生对象、数据对象、密封类子类。</p>
+<p><strong>Q7：<code>data object</code> 和 <code>object</code> 区别？</strong><br>A：<code>data object</code> 自动生成 <code>toString/equals/hashCode</code>，适合密封类无状态子类；<code>object</code> 不生成。</p>
+<p><strong>Q8：对象表达式会导致内存泄漏吗？</strong><br>A：在 Android 中，若匿名内部类持有 Activity 引用且生命周期长于 Activity，可能泄漏。可用静态内部类 + WeakReference 或 lambda 避免。</p>
+<p><strong>Q9：对象声明和伴生对象区别？</strong><br>A：伴生对象是对象声明的特殊形式，用 <code>companion</code> 修饰，与外部类关联，成员可通过外部类名访问；普通对象声明独立。</p>
+<p><strong>Q10：对象表达式能访问外部类的私有成员吗？</strong><br>A：能，如果它是在外部类内部创建的，会持有外部类引用，可以访问私有成员。</p>
+<p><strong>Q11：对象声明初始化时机？</strong><br>A：首次访问时惰性初始化，线程安全，只一次。</p>
+<p><strong>Q12：对象表达式能作为函数返回值吗？</strong><br>A：能，但返回类型通常是父类型或 <code>Any</code>，匿名类型只能在局部作用域使用。</p>
+<p><strong>Q13：Kotlin 中如何实现单例？</strong><br>A：用 <code>object</code> 声明最简单，线程安全，懒加载。也可用 <code>companion object</code> + <code>by lazy</code> 等。</p>
+<p><strong>Q14：对象声明能定义扩展函数吗？</strong><br>A：能，可以为对象声明定义扩展函数，但需通过对象名调用。</p>
+<hr>
+<h2 id="7-完整示例：单例与匿名监听器"><a href="#7-完整示例：单例与匿名监听器" class="headerlink" title="7. 完整示例：单例与匿名监听器"></a>7. 完整示例：单例与匿名监听器</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 对象声明：单例</span></span><br><span class="line"><span class="keyword">object</span> Config &#123;</span><br><span class="line">    <span class="keyword">var</span> debug = <span class="literal">false</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">enableDebug</span><span class="params">()</span></span> &#123; debug = <span class="literal">true</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对象表达式：匿名监听器</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Button</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(listener: <span class="type">OnClickListener</span>)</span></span> &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">OnClickListener</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    Config.enableDebug()</span><br><span class="line">    println(Config.debug)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> button = Button()</span><br><span class="line">    <span class="keyword">val</span> count = intArrayOf(<span class="number">0</span>)</span><br><span class="line">    button.setOnClickListener(<span class="keyword">object</span> : OnClickListener &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">()</span></span> &#123;</span><br><span class="line">            count[<span class="number">0</span>]++</span><br><span class="line">            println(<span class="string">&quot;Clicked <span class="subst">$&#123;count[<span class="number">0</span>]&#125;</span> times&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h2><ul>
+<li><strong>对象声明</strong>：<code>object Foo</code>，单例，编译后 <code>INSTANCE</code> 静态字段，线程安全，懒加载。用于单例、工具类、伴生对象、<code>data object</code>。</li>
+<li><strong>对象表达式</strong>：<code>object : Bar { }</code>，匿名内部类，每次创建新实例，可捕获外部变量。用于监听器、回调、临时实现。</li>
+<li>对象声明不能捕获外部变量；对象表达式可以。</li>
+<li>对象声明全局唯一；对象表达式每次新实例。</li>
+<li>与 Java 对比：对象声明 ≈ 静态单例；对象表达式 ≈ 匿名内部类。</li>
+<li>面试高频：区别、线程安全、初始化时机、内存泄漏、与伴生对象对比、单例实现。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
       </tags>
   </entry>
 </search>
