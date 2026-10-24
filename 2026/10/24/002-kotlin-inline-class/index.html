@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"konokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="内联类（inline class）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 值类（value class），并推荐使用 @JvmInline 注解。它的核心目标是：用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin 内联类（Inline Class &#x2F; Value Class）">
+<meta property="og:url" content="http://konokol.github.io/2026/10/24/002-kotlin-inline-class/index.html">
+<meta property="og:site_name" content="リグンさん">
+<meta property="og:description" content="内联类（inline class）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 值类（value class），并推荐使用 @JvmInline 注解。它的核心目标是：用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-24T02:32:38.000Z">
+<meta property="article:modified_time" content="2026-10-24T02:37:06.000Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://konokol.github.io/2026/10/24/002-kotlin-inline-class/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2026/10/24/002-kotlin-inline-class/","path":"2026/10/24/002-kotlin-inline-class/","title":"Kotlin 内联类（Inline Class / Value Class）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin 内联类（Inline Class / Value Class） | リグンさん</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">リグンさん</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Kotlin-%E5%86%85%E8%81%94%E7%B1%BB%EF%BC%88Inline-Class-Value-Class%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">Kotlin 内联类（Inline Class &#x2F; Value Class）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E8%81%94%E7%B1%BB%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">1. 为什么需要内联类？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%AF%AD%E6%B3%95%E4%B8%8E%E5%AE%9A%E4%B9%89"><span class="nav-number">1.2.</span> <span class="nav-text">2. 语法与定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-number">1.3.</span> <span class="nav-text">3. 编译原理与字节码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%A4%9A%E6%95%B0%E5%9C%BA%E6%99%AF%E5%86%85%E8%81%94"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 多数场景内联</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%96%B9%E6%B3%95%E5%90%8D%E4%BF%AE%E9%A5%B0%EF%BC%88Mangling%EF%BC%89"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 方法名修饰（Mangling）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E8%A3%85%E7%AE%B1%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 装箱场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E9%99%90%E5%88%B6%E4%B8%8E%E7%BA%A6%E6%9D%9F"><span class="nav-number">1.4.</span> <span class="nav-text">4. 限制与约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.5.</span> <span class="nav-text">5. 使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E7%B1%BB%E5%9E%8B%E5%AE%89%E5%85%A8%E5%8C%85%E8%A3%85"><span class="nav-number">1.5.1.</span> <span class="nav-text">5.1 类型安全包装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%8D%95%E4%BD%8D%E4%B8%8E%E5%BA%A6%E9%87%8F"><span class="nav-number">1.5.2.</span> <span class="nav-text">5.2 单位与度量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%AF%86%E7%A0%81%E3%80%81%E9%82%AE%E7%AE%B1%E7%AD%89"><span class="nav-number">1.5.3.</span> <span class="nav-text">5.3 密码、邮箱等</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E5%8D%8F%E7%A8%8B%E4%B8%AD%E7%9A%84-CoroutineContext-Key"><span class="nav-number">1.5.4.</span> <span class="nav-text">5.4 协程中的 CoroutineContext.Key</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%B8%8E-typealias%E3%80%81data-class-%E5%AF%B9%E6%AF%94"><span class="nav-number">1.6.</span> <span class="nav-text">6. 与 typealias、data class 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-Java-%E4%BA%92%E6%93%8D%E4%BD%9C"><span class="nav-number">1.7.</span> <span class="nav-text">7. Java 互操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E7%AD%94%E6%A1%88"><span class="nav-number">1.8.</span> <span class="nav-text">8. 常见面试题与答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.9.</span> <span class="nav-text">9. 完整示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E6%80%BB%E7%BB%93"><span class="nav-number">1.10.</span> <span class="nav-text">10. 总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/konokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;konokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/ivanjlee" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;ivanjlee" rel="noopener me" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://konokol.github.io/2026/10/24/002-kotlin-inline-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin 内联类（Inline Class &#x2F; Value Class） | リグンさん">
+      <meta itemprop="description" content="内联类（inline class）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 值类（value class），并推荐使用 @JvmInline 注解。它的核心目标是：用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin 内联类（Inline Class / Value Class）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-24 10:32:38 / 修改时间：10:37:06" itemprop="dateCreated datePublished" datetime="2026-10-24T10:32:38+08:00">2026-10-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">内联类（inline class）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 值类（value class），并推荐使用 @JvmInline 注解。它的核心目标是：用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Kotlin-内联类（Inline-Class-Value-Class）"><a href="#Kotlin-内联类（Inline-Class-Value-Class）" class="headerlink" title="Kotlin 内联类（Inline Class &#x2F; Value Class）"></a>Kotlin 内联类（Inline Class &#x2F; Value Class）</h1><p>内联类（<code>inline class</code>）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 <strong>值类（<code>value class</code>）</strong>，并推荐使用 <code>@JvmInline</code> 注解。它的核心目标是：<strong>用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销</strong>。</p>
+<hr>
+<h2 id="1-为什么需要内联类？"><a href="#1-为什么需要内联类？" class="headerlink" title="1. 为什么需要内联类？"></a>1. 为什么需要内联类？</h2><p>假设我们要表示“用户 ID”，如果直接用 <code>Long</code>，容易把其他 <code>Long</code> 参数误传：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">Long</span>)</span></span> &#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">deleteOrder</span><span class="params">(orderId: <span class="type">Long</span>)</span></span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">fetchUser(orderId) <span class="comment">// 编译通过，但逻辑错误</span></span><br></pre></td></tr></table></figure>
+
+<p>用 <code>data class</code> 包装可以类型安全，但每次创建都有对象头开销：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) <span class="comment">// 有对象头，堆分配</span></span><br></pre></td></tr></table></figure>
+
+<p>内联类则兼顾两者：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br></pre></td></tr></table></figure>
+
+<p>编译后，多数场景直接用 <code>long</code> 表示，无对象分配；但类型系统会阻止误传。</p>
+<hr>
+<h2 id="2-语法与定义"><a href="#2-语法与定义" class="headerlink" title="2. 语法与定义"></a>2. 语法与定义</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Password</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.length &gt;= <span class="number">6</span>) &#123; <span class="string">&quot;Password too short&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Money</span>(<span class="keyword">val</span> cents: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">plus</span><span class="params">(other: <span class="type">Money</span>)</span></span> = Money(cents + other.cents)</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toYuan</span><span class="params">()</span></span>: <span class="built_in">Double</span> = cents / <span class="number">100.0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>规则</strong>：</p>
+<ul>
+<li>必须用 <code>@JvmInline</code> 注解（Kotlin 1.5+）。</li>
+<li>主构造器只能有一个 <code>val</code> 属性。</li>
+<li>不能有 <code>var</code> 属性，不能有幕后字段（backing field）。</li>
+<li>可以实现接口。</li>
+<li>不能继承其他类（只能继承 <code>Any</code>）。</li>
+<li>可以有 <code>init</code> 块、方法、伴生对象。</li>
+<li>不能有内部类？可以有嵌套类。</li>
+</ul>
+<p>早期写法 <code>inline class UserId(val id: Long)</code> 已废弃，现在编译会提示改用 <code>value class</code>。</p>
+<hr>
+<h2 id="3-编译原理与字节码"><a href="#3-编译原理与字节码" class="headerlink" title="3. 编译原理与字节码"></a>3. 编译原理与字节码</h2><h3 id="3-1-多数场景内联"><a href="#3-1-多数场景内联" class="headerlink" title="3.1 多数场景内联"></a>3.1 多数场景内联</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> uid = UserId(<span class="number">1001L</span>)</span><br><span class="line">    fetchUser(uid)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">fetchUser</span><span class="params">(<span class="type">long</span> id)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> UserId.constructor-impl(<span class="number">1001L</span>);</span><br><span class="line">    fetchUser(uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>方法参数变成底层 <code>long</code>。</li>
+<li>局部变量也是 <code>long</code>。</li>
+<li>无 <code>UserId</code> 对象分配。</li>
+</ul>
+<h3 id="3-2-方法名修饰（Mangling）"><a href="#3-2-方法名修饰（Mangling）" class="headerlink" title="3.2 方法名修饰（Mangling）"></a>3.2 方法名修饰（Mangling）</h3><p>如果内联类有方法，编译后方法名会被修饰，避免与底层类型方法冲突：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">show</span><span class="params">()</span></span>: String = <span class="string">&quot;User <span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字节码中方法名类似 <code>show-impl</code> 或 <code>show-xxxxx</code>，Java 调用时无法直接写 <code>show()</code>。</p>
+<h3 id="3-3-装箱场景"><a href="#3-3-装箱场景" class="headerlink" title="3.3 装箱场景"></a>3.3 装箱场景</h3><p>以下情况内联类会<strong>装箱</strong>为包装对象：</p>
+<ul>
+<li>作为可空类型：<code>UserId?</code></li>
+<li>作为泛型参数：<code>List&lt;UserId&gt;</code>、<code>Producer&lt;UserId&gt;</code></li>
+<li>作为接口引用：<code>val any: Any = UserId(1L)</code></li>
+<li>在数组中：<code>Array&lt;UserId&gt;</code>，但可用 <code>LongArray</code> 替代</li>
+<li>反射中：<code>UserId::class</code></li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> a: UserId = UserId(<span class="number">1L</span>)   <span class="comment">// 不装箱</span></span><br><span class="line"><span class="keyword">val</span> b: UserId? = UserId(<span class="number">1L</span>)  <span class="comment">// 装箱</span></span><br><span class="line"><span class="keyword">val</span> list = listOf(UserId(<span class="number">1L</span>)) <span class="comment">// 装箱</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-限制与约束"><a href="#4-限制与约束" class="headerlink" title="4. 限制与约束"></a>4. 限制与约束</h2><table>
+<thead>
+<tr>
+<th>限制</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只能一个主构造属性</td>
+<td>且必须是 <code>val</code></td>
+</tr>
+<tr>
+<td>不能有 <code>var</code></td>
+<td>不能有可变属性</td>
+</tr>
+<tr>
+<td>不能有幕后字段</td>
+<td>不能有 <code>field</code></td>
+</tr>
+<tr>
+<td>不能继承类</td>
+<td>只能实现接口</td>
+</tr>
+<tr>
+<td>不能有 <code>init</code> 块？</td>
+<td>可以有 <code>init</code> 块，但不能给属性赋值（因为无幕后字段）</td>
+</tr>
+<tr>
+<td>不能有内部类？</td>
+<td>可以有嵌套类，但不能有 <code>inner</code> 内部类</td>
+</tr>
+<tr>
+<td>不能有延迟初始化</td>
+<td><code>lateinit</code> 不允许</td>
+</tr>
+<tr>
+<td>不能有自定义 getter&#x2F;setter</td>
+<td>属性不能有自定义访问器</td>
+</tr>
+</tbody></table>
+<p>示例：<code>init</code> 块可以校验：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Password</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.length &gt;= <span class="number">6</span>) &#123; <span class="string">&quot;Too short&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后，<code>init</code> 逻辑会插入到构造器工厂方法中。</p>
+<hr>
+<h2 id="5-使用场景"><a href="#5-使用场景" class="headerlink" title="5. 使用场景"></a>5. 使用场景</h2><h3 id="5-1-类型安全包装"><a href="#5-1-类型安全包装" class="headerlink" title="5.1 类型安全包装"></a>5.1 类型安全包装</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">OrderId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">ProductId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchOrder</span><span class="params">(id: <span class="type">OrderId</span>)</span></span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>避免 <code>Long</code> 误传。</p>
+<h3 id="5-2-单位与度量"><a href="#5-2-单位与度量" class="headerlink" title="5.2 单位与度量"></a>5.2 单位与度量</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Dp</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Sp</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Px</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Compose 中大量使用 <code>Dp</code>、<code>Sp</code> 等。</p>
+<h3 id="5-3-密码、邮箱等"><a href="#5-3-密码、邮箱等" class="headerlink" title="5.3 密码、邮箱等"></a>5.3 密码、邮箱等</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Email</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123; require(value.contains(<span class="string">&quot;@&quot;</span>)) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-协程中的-CoroutineContext-Key"><a href="#5-4-协程中的-CoroutineContext-Key" class="headerlink" title="5.4 协程中的 CoroutineContext.Key"></a>5.4 协程中的 <code>CoroutineContext.Key</code></h3><p>Kotlin 协程内部用 <code>value class</code> 包装 <code>CoroutineContext.Key</code>，减少开销。</p>
+<hr>
+<h2 id="6-与-typealias、data-class-对比"><a href="#6-与-typealias、data-class-对比" class="headerlink" title="6. 与 typealias、data class 对比"></a>6. 与 <code>typealias</code>、<code>data class</code> 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>value class</code></th>
+<th><code>typealias</code></th>
+<th><code>data class</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>是</td>
+<td>否（只是别名）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>运行时开销</td>
+<td>多数内联</td>
+<td>无</td>
+<td>有对象头</td>
+</tr>
+<tr>
+<td>可定义方法</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>可实现接口</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>可空&#x2F;泛型装箱</td>
+<td>会装箱</td>
+<td>无</td>
+<td>始终对象</td>
+</tr>
+<tr>
+<td>反射可见</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<p><strong><code>typealias</code> 只是编译期别名</strong>，不提供类型安全：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typealias</span> UserId = <span class="built_in">Long</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line">fetchUser(<span class="number">1001L</span>) <span class="comment">// 编译通过，无法区分</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-Java-互操作"><a href="#7-Java-互操作" class="headerlink" title="7. Java 互操作"></a>7. Java 互操作</h2><p>Java 调用 Kotlin 的 <code>value class</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Java 侧看到的是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">fetchUser</span><span class="params">(<span class="type">long</span> id)</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>但如果你在 Java 中想构造 <code>UserId</code>，需要调用生成的工厂方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> UserId.constructor-impl(<span class="number">1001L</span>);</span><br></pre></td></tr></table></figure>
+
+<p>方法名被修饰，Java 调用不便。因此，<strong>给 Java 用的 API 尽量避免暴露 <code>value class</code></strong>，或提供普通 <code>Long</code> 重载。</p>
+<p>可以用 <code>@JvmName</code> 修饰方法名：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="meta">@JvmName(<span class="string">&quot;show&quot;</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">show</span><span class="params">()</span></span>: String = <span class="string">&quot;User <span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-常见面试题与答案"><a href="#8-常见面试题与答案" class="headerlink" title="8. 常见面试题与答案"></a>8. 常见面试题与答案</h2><p><strong>Q1：Kotlin 内联类是什么？和 <code>value class</code> 什么关系？</strong><br>A：内联类是 Kotlin 1.3 的实验特性，1.5 后改名为 <code>value class</code>，推荐用 <code>@JvmInline value class</code>。核心是包装类型在多数场景内联为底层类型，避免装箱。</p>
+<p><strong>Q2：内联类和 <code>data class</code> 区别？</strong><br>A：<code>data class</code> 是普通类，有对象头、<code>copy/equals/hashCode</code>；<code>value class</code> 多数场景内联为底层类型，无对象分配，但限制多。</p>
+<p><strong>Q3：内联类和 <code>typealias</code> 区别？</strong><br>A：<code>typealias</code> 只是别名，无类型安全；<code>value class</code> 是真实类型，编译器会阻止误传。</p>
+<p><strong>Q4：什么时候会装箱？</strong><br>A：作为可空类型、泛型参数、接口引用、数组元素、反射时。</p>
+<p><strong>Q5：内联类能实现接口吗？</strong><br>A：能。但作为接口引用时会装箱。</p>
+<p><strong>Q6：内联类能有多个属性吗？</strong><br>A：不能，只能有一个 <code>val</code> 主构造属性。</p>
+<p><strong>Q7：内联类能继承吗？</strong><br>A：不能继承类，只能实现接口。</p>
+<p><strong>Q8：内联类在 Java 中怎么用？</strong><br>A：Java 看到的是底层类型方法，方法名被修饰，调用不便。给 Java 的 API 尽量避免暴露。</p>
+<p><strong>Q9：内联类能做 <code>lateinit</code> 吗？</strong><br>A：不能，因为无幕后字段。</p>
+<p><strong>Q10：内联类能用于协程吗？</strong><br>A：能，协程内部大量使用，如 <code>CoroutineContext.Key</code>。</p>
+<p><strong>Q11：<code>@JvmInline</code> 注解作用？</strong><br>A：告诉编译器生成内联类。Kotlin 1.5+ 必须加。</p>
+<p><strong>Q12：内联类的 <code>init</code> 块什么时候执行？</strong><br>A：在构造器工厂方法中执行，每次创建时校验。</p>
+<hr>
+<h2 id="9-完整示例"><a href="#9-完整示例" class="headerlink" title="9. 完整示例"></a>9. 完整示例</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(id &gt; <span class="number">0</span>) &#123; <span class="string">&quot;id must be positive&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">display</span><span class="params">()</span></span>: String = <span class="string">&quot;User#<span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Email</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.contains(<span class="string">&quot;@&quot;</span>)) &#123; <span class="string">&quot;Invalid email&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">sendEmail</span><span class="params">(email: <span class="type">Email</span>)</span></span> &#123;</span><br><span class="line">    println(<span class="string">&quot;Sending to <span class="subst">$&#123;email.value&#125;</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> uid = UserId(<span class="number">1001L</span>)</span><br><span class="line">    println(uid.display())</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> email = Email(<span class="string">&quot;test@example.com&quot;</span>)</span><br><span class="line">    sendEmail(email)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 编译错误：类型不匹配</span></span><br><span class="line">    <span class="comment">// sendEmail(UserId(1L))</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-总结"><a href="#10-总结" class="headerlink" title="10. 总结"></a>10. 总结</h2><ul>
+<li>内联类（<code>value class</code>）用 <code>@JvmInline</code> 修饰，包装单个 <code>val</code> 属性。</li>
+<li>编译后多数场景内联为底层类型，避免装箱，提供类型安全。</li>
+<li>可空、泛型、接口、数组、反射时会装箱。</li>
+<li>限制：单属性、无 <code>var</code>、无幕后字段、不能继承类。</li>
+<li>使用场景：ID、单位、密码、邮箱等类型安全包装。</li>
+<li>与 <code>typealias</code> 不同，提供真实类型安全；与 <code>data class</code> 不同，无对象头。</li>
+<li>Java 互操作不便，给 Java 的 API 尽量不暴露。</li>
+<li>面试高频：装箱场景、与 data class 区别、与 typealias 区别、限制。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/24/002-kotlin-nested-class/" rel="prev" title="002-kotlin-nested-class">
+                  <i class="fa fa-angle-left"></i> 002-kotlin-nested-class
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/konokol" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

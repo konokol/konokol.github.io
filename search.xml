@@ -581,76 +581,209 @@
       </tags>
   </entry>
   <entry>
-    <title>Kotlin中的数字类型的相等性</title>
-    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
-    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
-<ul>
-<li>结构型相等(&#x3D;&#x3D;)</li>
-<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
-</ul>
-<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
-<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
-<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    <title>Kotlin 内联类（Inline Class / Value Class）</title>
+    <url>/2026/10/24/002-kotlin-inline-class/</url>
+    <content><![CDATA[<h1 id="Kotlin-内联类（Inline-Class-Value-Class）"><a href="#Kotlin-内联类（Inline-Class-Value-Class）" class="headerlink" title="Kotlin 内联类（Inline Class &#x2F; Value Class）"></a>Kotlin 内联类（Inline Class &#x2F; Value Class）</h1><p>内联类（<code>inline class</code>）是 Kotlin 1.3 引入的实验特性，Kotlin 1.5 后改名为 <strong>值类（<code>value class</code>）</strong>，并推荐使用 <code>@JvmInline</code> 注解。它的核心目标是：<strong>用包装类型提供类型安全，同时在多数场景下避免运行时装箱开销</strong>。</p>
+<hr>
+<h2 id="1-为什么需要内联类？"><a href="#1-为什么需要内联类？" class="headerlink" title="1. 为什么需要内联类？"></a>1. 为什么需要内联类？</h2><p>假设我们要表示“用户 ID”，如果直接用 <code>Long</code>，容易把其他 <code>Long</code> 参数误传：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">Long</span>)</span></span> &#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">deleteOrder</span><span class="params">(orderId: <span class="type">Long</span>)</span></span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">fetchUser(orderId) <span class="comment">// 编译通过，但逻辑错误</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>用 <code>data class</code> 包装可以类型安全，但每次创建都有对象头开销：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) <span class="comment">// 有对象头，堆分配</span></span><br></pre></td></tr></table></figure>
 
-<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
-<ul>
-<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
-<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
-<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
-</ul>
-<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>内联类则兼顾两者：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br></pre></td></tr></table></figure>
 
-<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
-<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
-<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
-<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后，多数场景直接用 <code>long</code> 表示，无对象分配；但类型系统会阻止误传。</p>
+<hr>
+<h2 id="2-语法与定义"><a href="#2-语法与定义" class="headerlink" title="2. 语法与定义"></a>2. 语法与定义</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Password</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.length &gt;= <span class="number">6</span>) &#123; <span class="string">&quot;Password too short&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Money</span>(<span class="keyword">val</span> cents: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">plus</span><span class="params">(other: <span class="type">Money</span>)</span></span> = Money(cents + other.cents)</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toYuan</span><span class="params">()</span></span>: <span class="built_in">Double</span> = cents / <span class="number">100.0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
-<p><strong>1、数字类型始终和自身相等</strong></p>
-<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
-<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
-<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
-<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
-<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
-<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
-<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
-<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
-<p><strong>5、值相等的数字，满足结构型相等</strong></p>
-<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
-<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<p><strong>规则</strong>：</p>
 <ul>
-<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
-<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
-<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+<li>必须用 <code>@JvmInline</code> 注解（Kotlin 1.5+）。</li>
+<li>主构造器只能有一个 <code>val</code> 属性。</li>
+<li>不能有 <code>var</code> 属性，不能有幕后字段（backing field）。</li>
+<li>可以实现接口。</li>
+<li>不能继承其他类（只能继承 <code>Any</code>）。</li>
+<li>可以有 <code>init</code> 块、方法、伴生对象。</li>
+<li>不能有内部类？可以有嵌套类。</li>
 </ul>
-<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
-<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
-<ul>
-<li>认为 NaN 与其自身相等</li>
-<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
-<li>认为 -0.0 小于 0.0</li>
-</ul>
-<p>IEEE 754中对于浮点数比较的定义</p>
-<blockquote>
-<p> <strong>浮点数的比较</strong></p>
-<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
-<p> <strong>标准运算</strong></p>
-<p> 下述函数必须提供:</p>
-<p>……</p>
-<ul>
-<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
-<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
-</ul>
-</blockquote>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>早期写法 <code>inline class UserId(val id: Long)</code> 已废弃，现在编译会提示改用 <code>value class</code>。</p>
+<hr>
+<h2 id="3-编译原理与字节码"><a href="#3-编译原理与字节码" class="headerlink" title="3. 编译原理与字节码"></a>3. 编译原理与字节码</h2><h3 id="3-1-多数场景内联"><a href="#3-1-多数场景内联" class="headerlink" title="3.1 多数场景内联"></a>3.1 多数场景内联</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> uid = UserId(<span class="number">1001L</span>)</span><br><span class="line">    fetchUser(uid)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">fetchUser</span><span class="params">(<span class="type">long</span> id)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> UserId.constructor-impl(<span class="number">1001L</span>);</span><br><span class="line">    fetchUser(uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>方法参数变成底层 <code>long</code>。</li>
+<li>局部变量也是 <code>long</code>。</li>
+<li>无 <code>UserId</code> 对象分配。</li>
+</ul>
+<h3 id="3-2-方法名修饰（Mangling）"><a href="#3-2-方法名修饰（Mangling）" class="headerlink" title="3.2 方法名修饰（Mangling）"></a>3.2 方法名修饰（Mangling）</h3><p>如果内联类有方法，编译后方法名会被修饰，避免与底层类型方法冲突：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">show</span><span class="params">()</span></span>: String = <span class="string">&quot;User <span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>字节码中方法名类似 <code>show-impl</code> 或 <code>show-xxxxx</code>，Java 调用时无法直接写 <code>show()</code>。</p>
+<h3 id="3-3-装箱场景"><a href="#3-3-装箱场景" class="headerlink" title="3.3 装箱场景"></a>3.3 装箱场景</h3><p>以下情况内联类会<strong>装箱</strong>为包装对象：</p>
+<ul>
+<li>作为可空类型：<code>UserId?</code></li>
+<li>作为泛型参数：<code>List&lt;UserId&gt;</code>、<code>Producer&lt;UserId&gt;</code></li>
+<li>作为接口引用：<code>val any: Any = UserId(1L)</code></li>
+<li>在数组中：<code>Array&lt;UserId&gt;</code>，但可用 <code>LongArray</code> 替代</li>
+<li>反射中：<code>UserId::class</code></li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> a: UserId = UserId(<span class="number">1L</span>)   <span class="comment">// 不装箱</span></span><br><span class="line"><span class="keyword">val</span> b: UserId? = UserId(<span class="number">1L</span>)  <span class="comment">// 装箱</span></span><br><span class="line"><span class="keyword">val</span> list = listOf(UserId(<span class="number">1L</span>)) <span class="comment">// 装箱</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-限制与约束"><a href="#4-限制与约束" class="headerlink" title="4. 限制与约束"></a>4. 限制与约束</h2><table>
+<thead>
+<tr>
+<th>限制</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只能一个主构造属性</td>
+<td>且必须是 <code>val</code></td>
+</tr>
+<tr>
+<td>不能有 <code>var</code></td>
+<td>不能有可变属性</td>
+</tr>
+<tr>
+<td>不能有幕后字段</td>
+<td>不能有 <code>field</code></td>
+</tr>
+<tr>
+<td>不能继承类</td>
+<td>只能实现接口</td>
+</tr>
+<tr>
+<td>不能有 <code>init</code> 块？</td>
+<td>可以有 <code>init</code> 块，但不能给属性赋值（因为无幕后字段）</td>
+</tr>
+<tr>
+<td>不能有内部类？</td>
+<td>可以有嵌套类，但不能有 <code>inner</code> 内部类</td>
+</tr>
+<tr>
+<td>不能有延迟初始化</td>
+<td><code>lateinit</code> 不允许</td>
+</tr>
+<tr>
+<td>不能有自定义 getter&#x2F;setter</td>
+<td>属性不能有自定义访问器</td>
+</tr>
+</tbody></table>
+<p>示例：<code>init</code> 块可以校验：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Password</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.length &gt;= <span class="number">6</span>) &#123; <span class="string">&quot;Too short&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后，<code>init</code> 逻辑会插入到构造器工厂方法中。</p>
+<hr>
+<h2 id="5-使用场景"><a href="#5-使用场景" class="headerlink" title="5. 使用场景"></a>5. 使用场景</h2><h3 id="5-1-类型安全包装"><a href="#5-1-类型安全包装" class="headerlink" title="5.1 类型安全包装"></a>5.1 类型安全包装</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">OrderId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">ProductId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchOrder</span><span class="params">(id: <span class="type">OrderId</span>)</span></span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>避免 <code>Long</code> 误传。</p>
+<h3 id="5-2-单位与度量"><a href="#5-2-单位与度量" class="headerlink" title="5.2 单位与度量"></a>5.2 单位与度量</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Dp</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Sp</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Px</span>(<span class="keyword">val</span> value: <span class="built_in">Float</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Compose 中大量使用 <code>Dp</code>、<code>Sp</code> 等。</p>
+<h3 id="5-3-密码、邮箱等"><a href="#5-3-密码、邮箱等" class="headerlink" title="5.3 密码、邮箱等"></a>5.3 密码、邮箱等</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span> value <span class="keyword">class</span> <span class="title class_">Email</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123; require(value.contains(<span class="string">&quot;@&quot;</span>)) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-协程中的-CoroutineContext-Key"><a href="#5-4-协程中的-CoroutineContext-Key" class="headerlink" title="5.4 协程中的 CoroutineContext.Key"></a>5.4 协程中的 <code>CoroutineContext.Key</code></h3><p>Kotlin 协程内部用 <code>value class</code> 包装 <code>CoroutineContext.Key</code>，减少开销。</p>
+<hr>
+<h2 id="6-与-typealias、data-class-对比"><a href="#6-与-typealias、data-class-对比" class="headerlink" title="6. 与 typealias、data class 对比"></a>6. 与 <code>typealias</code>、<code>data class</code> 对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>value class</code></th>
+<th><code>typealias</code></th>
+<th><code>data class</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>是</td>
+<td>否（只是别名）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>运行时开销</td>
+<td>多数内联</td>
+<td>无</td>
+<td>有对象头</td>
+</tr>
+<tr>
+<td>可定义方法</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>可实现接口</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>可空&#x2F;泛型装箱</td>
+<td>会装箱</td>
+<td>无</td>
+<td>始终对象</td>
+</tr>
+<tr>
+<td>反射可见</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<p><strong><code>typealias</code> 只是编译期别名</strong>，不提供类型安全：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typealias</span> UserId = <span class="built_in">Long</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br><span class="line">fetchUser(<span class="number">1001L</span>) <span class="comment">// 编译通过，无法区分</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-Java-互操作"><a href="#7-Java-互操作" class="headerlink" title="7. Java 互操作"></a>7. Java 互操作</h2><p>Java 调用 Kotlin 的 <code>value class</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">(id: <span class="type">UserId</span>)</span></span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Java 侧看到的是：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">fetchUser</span><span class="params">(<span class="type">long</span> id)</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>但如果你在 Java 中想构造 <code>UserId</code>，需要调用生成的工厂方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> UserId.constructor-impl(<span class="number">1001L</span>);</span><br></pre></td></tr></table></figure>
+
+<p>方法名被修饰，Java 调用不便。因此，<strong>给 Java 用的 API 尽量避免暴露 <code>value class</code></strong>，或提供普通 <code>Long</code> 重载。</p>
+<p>可以用 <code>@JvmName</code> 修饰方法名：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="meta">@JvmName(<span class="string">&quot;show&quot;</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">show</span><span class="params">()</span></span>: String = <span class="string">&quot;User <span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-常见面试题与答案"><a href="#8-常见面试题与答案" class="headerlink" title="8. 常见面试题与答案"></a>8. 常见面试题与答案</h2><p><strong>Q1：Kotlin 内联类是什么？和 <code>value class</code> 什么关系？</strong><br>A：内联类是 Kotlin 1.3 的实验特性，1.5 后改名为 <code>value class</code>，推荐用 <code>@JvmInline value class</code>。核心是包装类型在多数场景内联为底层类型，避免装箱。</p>
+<p><strong>Q2：内联类和 <code>data class</code> 区别？</strong><br>A：<code>data class</code> 是普通类，有对象头、<code>copy/equals/hashCode</code>；<code>value class</code> 多数场景内联为底层类型，无对象分配，但限制多。</p>
+<p><strong>Q3：内联类和 <code>typealias</code> 区别？</strong><br>A：<code>typealias</code> 只是别名，无类型安全；<code>value class</code> 是真实类型，编译器会阻止误传。</p>
+<p><strong>Q4：什么时候会装箱？</strong><br>A：作为可空类型、泛型参数、接口引用、数组元素、反射时。</p>
+<p><strong>Q5：内联类能实现接口吗？</strong><br>A：能。但作为接口引用时会装箱。</p>
+<p><strong>Q6：内联类能有多个属性吗？</strong><br>A：不能，只能有一个 <code>val</code> 主构造属性。</p>
+<p><strong>Q7：内联类能继承吗？</strong><br>A：不能继承类，只能实现接口。</p>
+<p><strong>Q8：内联类在 Java 中怎么用？</strong><br>A：Java 看到的是底层类型方法，方法名被修饰，调用不便。给 Java 的 API 尽量避免暴露。</p>
+<p><strong>Q9：内联类能做 <code>lateinit</code> 吗？</strong><br>A：不能，因为无幕后字段。</p>
+<p><strong>Q10：内联类能用于协程吗？</strong><br>A：能，协程内部大量使用，如 <code>CoroutineContext.Key</code>。</p>
+<p><strong>Q11：<code>@JvmInline</code> 注解作用？</strong><br>A：告诉编译器生成内联类。Kotlin 1.5+ 必须加。</p>
+<p><strong>Q12：内联类的 <code>init</code> 块什么时候执行？</strong><br>A：在构造器工厂方法中执行，每次创建时校验。</p>
+<hr>
+<h2 id="9-完整示例"><a href="#9-完整示例" class="headerlink" title="9. 完整示例"></a>9. 完整示例</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">UserId</span>(<span class="keyword">val</span> id: <span class="built_in">Long</span>) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(id &gt; <span class="number">0</span>) &#123; <span class="string">&quot;id must be positive&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">display</span><span class="params">()</span></span>: String = <span class="string">&quot;User#<span class="variable">$id</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JvmInline</span></span><br><span class="line">value <span class="keyword">class</span> <span class="title class_">Email</span>(<span class="keyword">val</span> value: String) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        require(value.contains(<span class="string">&quot;@&quot;</span>)) &#123; <span class="string">&quot;Invalid email&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">sendEmail</span><span class="params">(email: <span class="type">Email</span>)</span></span> &#123;</span><br><span class="line">    println(<span class="string">&quot;Sending to <span class="subst">$&#123;email.value&#125;</span>&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> uid = UserId(<span class="number">1001L</span>)</span><br><span class="line">    println(uid.display())</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> email = Email(<span class="string">&quot;test@example.com&quot;</span>)</span><br><span class="line">    sendEmail(email)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 编译错误：类型不匹配</span></span><br><span class="line">    <span class="comment">// sendEmail(UserId(1L))</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-总结"><a href="#10-总结" class="headerlink" title="10. 总结"></a>10. 总结</h2><ul>
+<li>内联类（<code>value class</code>）用 <code>@JvmInline</code> 修饰，包装单个 <code>val</code> 属性。</li>
+<li>编译后多数场景内联为底层类型，避免装箱，提供类型安全。</li>
+<li>可空、泛型、接口、数组、反射时会装箱。</li>
+<li>限制：单属性、无 <code>var</code>、无幕后字段、不能继承类。</li>
+<li>使用场景：ID、单位、密码、邮箱等类型安全包装。</li>
+<li>与 <code>typealias</code> 不同，提供真实类型安全；与 <code>data class</code> 不同，无对象头。</li>
+<li>Java 互操作不便，给 Java 的 API 尽量不暴露。</li>
+<li>面试高频：装箱场景、与 data class 区别、与 typealias 区别、限制。</li>
+</ul>
 ]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
       <tags>
         <tag>Kotlin</tag>
       </tags>
@@ -790,12 +923,87 @@
       </tags>
   </entry>
   <entry>
+    <title>Kotlin中的数字类型的相等性</title>
+    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
+    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
+<ul>
+<li>结构型相等(&#x3D;&#x3D;)</li>
+<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
+</ul>
+<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
+<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
+<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
+<ul>
+<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
+<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
+<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
+</ul>
+<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
+<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
+<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
+<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
+<p><strong>1、数字类型始终和自身相等</strong></p>
+<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
+<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
+<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
+<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
+<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
+<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
+<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
+<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
+<p><strong>5、值相等的数字，满足结构型相等</strong></p>
+<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
+<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<ul>
+<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
+<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
+<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+</ul>
+<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
+<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
+<ul>
+<li>认为 NaN 与其自身相等</li>
+<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
+<li>认为 -0.0 小于 0.0</li>
+</ul>
+<p>IEEE 754中对于浮点数比较的定义</p>
+<blockquote>
+<p> <strong>浮点数的比较</strong></p>
+<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
+<p> <strong>标准运算</strong></p>
+<p> 下述函数必须提供:</p>
+<p>……</p>
+<ul>
+<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
+<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
+</ul>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Git常用命令</title>
     <url>/2017/06/08/003-git/</url>
     <content><![CDATA[<p><em>本文出处<a href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#105;&#x74;&#64;&#103;&#105;&#116;&#104;&#x75;&#98;&#46;&#99;&#x6f;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#116;&#64;&#103;&#x69;&#116;&#104;&#117;&#x62;&#x2e;&#x63;&#x6f;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
