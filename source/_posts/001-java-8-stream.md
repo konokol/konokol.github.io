@@ -2,7 +2,7 @@
 title: Java 8函数式数据处理
 date: 2017-12-27 23:56:00
 tags: java
-categoty: tech
+categoty: Java
 description: 流是Java 8中新引入的概念，它允许你以声明式方式处理数据集合（通过查询语句来表达，而不是临时编写一个实现）。
 ---
 

@@ -1,8 +1,8 @@
 ---
-title: Java 8函数式编程–––Lambda表达式
+title: Java 8 函数式编程–––Lambda表达式
 date: 2017-11-28 00:40:00
 tags: java
-category: tech
+category: Java
 description: Lambda表达式的作用和匿名内部类相似，也是为了将代码作为数据来传递，从某种意义上讲，Lambda表达式也可以理解为匿名函数，在其他的一些语言中则把称为闭包，实际上意义都差不多的。
 ---
 
