@@ -1,9 +1,9 @@
 ---
 title: 002-kotlin-nested-class
-category: tech
+category: Android
 date: 2026-10-24 09:42:53
 tags: Kotlin
-description:
+description: Kotlin 中的嵌套类和内部类默认行为正好和 Java 中相反。写在内部的类默认不持有外部类的引用，仅当加了 inner 关键字之后才持有外部类的引用。
 ---
 
 # Kotlin 中的嵌套类（Nested Class）与内部类（Inner Class）
