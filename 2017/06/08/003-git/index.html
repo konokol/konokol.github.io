@@ -24,7 +24,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Git常用命令">
 <meta property="og:url" content="http://konokol.github.io/2017/06/08/003-git/index.html">
-<meta property="og:site_name" content="リグンさん">
+<meta property="og:site_name" content="立秋">
 <meta property="og:description" content="Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://pic3.zhimg.com/v2-b90a8993bb2181b3699f02dc808e13ca_b.png">
@@ -42,7 +42,7 @@
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2017/06/08/003-git/","path":"2017/06/08/003-git/","title":"Git常用命令"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Git常用命令 | リグンさん</title>
+<title>Git常用命令 | 立秋</title>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
   <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
@@ -96,9 +96,10 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">リグンさん</p>
+      <p class="site-title">立秋</p>
       <i class="logo-line"></i>
     </a>
+      <p class="site-subtitle" itemprop="description">konokol | Beyond Pixels</p>
   </div>
 
   <div class="site-nav-right">
@@ -183,7 +184,7 @@
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">5</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -234,12 +235,12 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="リグンさん">
+      <meta itemprop="name" content="立秋">
       <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Git常用命令 | リグンさん">
+      <meta itemprop="name" content="Git常用命令 | 立秋">
       <meta itemprop="description" content="Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。">
     </span>
       <header class="post-header">
@@ -287,7 +288,7 @@
     <div class="post-body" itemprop="articleBody"><p><em>本文出处<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a target="_blank" rel="noopener" href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#x74;&#64;&#103;&#105;&#x74;&#x68;&#117;&#x62;&#46;&#99;&#x6f;&#x6d;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#x67;&#x69;&#116;&#64;&#x67;&#x69;&#x74;&#104;&#x75;&#98;&#x2e;&#99;&#x6f;&#x6d;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
@@ -467,8 +468,8 @@
             <div class="post-nav-item">
             </div>
             <div class="post-nav-item">
-                <a href="/2017/11/28/001-java-8-lambda/" rel="next" title="Java 8函数式编程–––Lambda表达式">
-                  Java 8函数式编程–––Lambda表达式 <i class="fa fa-angle-right"></i>
+                <a href="/2017/11/28/001-java-8-lambda/" rel="next" title="Java 8 函数式编程–––Lambda表达式">
+                  Java 8 函数式编程–––Lambda表达式 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
