@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"konokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="幕后字段是 Kotlin 属性在需要存储实际值时，编译器自动生成的私有字段。它用 &#96;field&#96; 关键字在自定义 getter&#x2F;setter 中访问。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin 中的幕后字段">
+<meta property="og:url" content="http://konokol.github.io/2026/10/26/002-kotlin-backing-field/index.html">
+<meta property="og:site_name" content="立秋">
+<meta property="og:description" content="幕后字段是 Kotlin 属性在需要存储实际值时，编译器自动生成的私有字段。它用 &#96;field&#96; 关键字在自定义 getter&#x2F;setter 中访问。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-26T09:15:32.000Z">
+<meta property="article:modified_time" content="2026-10-26T09:19:08.000Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://konokol.github.io/2026/10/26/002-kotlin-backing-field/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2026/10/26/002-kotlin-backing-field/","path":"2026/10/26/002-kotlin-backing-field/","title":"Kotlin 中的幕后字段"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin 中的幕后字段 | 立秋</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">立秋</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">konokol | Beyond Pixels</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Kotlin-%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5%EF%BC%88Backing-Field%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.</span> <span class="nav-text">Kotlin 幕后字段（Backing Field）详解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5"><span class="nav-number">1.1.</span> <span class="nav-text">一、什么是幕后字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E6%9C%89%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5"><span class="nav-number">1.2.</span> <span class="nav-text">二、什么时候有幕后字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81field-%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">1.3.</span> <span class="nav-text">三、field 关键字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%B2%A1%E6%9C%89%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">1.4.</span> <span class="nav-text">四、没有幕后字段的情况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7"><span class="nav-number">1.4.1.</span> <span class="nav-text">4.1 计算属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%89%A9%E5%B1%95%E5%B1%9E%E6%80%A7"><span class="nav-number">1.4.2.</span> <span class="nav-text">4.2 扩展属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%8A%BD%E8%B1%A1%E5%B1%9E%E6%80%A7"><span class="nav-number">1.4.3.</span> <span class="nav-text">4.3 抽象属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7"><span class="nav-number">1.4.4.</span> <span class="nav-text">4.4 委托属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E5%8F%AA%E8%AF%BB%E5%B1%9E%E6%80%A7%E4%B8%94%E6%97%A0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%99%A8"><span class="nav-number">1.4.5.</span> <span class="nav-text">4.5 只读属性且无初始化器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5%E4%B8%8E-lateinit%E3%80%81const"><span class="nav-number">1.5.</span> <span class="nav-text">五、幕后字段与 lateinit、const</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%B9%95%E5%90%8E%E5%AD%97%E6%AE%B5%E4%B8%8E-Java-%E5%AF%B9%E6%AF%94"><span class="nav-number">1.6.</span> <span class="nav-text">六、幕后字段与 Java 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E7%AD%94%E6%A1%88"><span class="nav-number">1.7.</span> <span class="nav-text">七、常见面试题与答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.8.</span> <span class="nav-text">八、完整示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">1.9.</span> <span class="nav-text">九、总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/konokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;konokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/ivanjlee" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;ivanjlee" rel="noopener me" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://konokol.github.io/2026/10/26/002-kotlin-backing-field/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="立秋">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin 中的幕后字段 | 立秋">
+      <meta itemprop="description" content="幕后字段是 Kotlin 属性在需要存储实际值时，编译器自动生成的私有字段。它用 &#96;field&#96; 关键字在自定义 getter&#x2F;setter 中访问。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin 中的幕后字段
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-26 17:15:32 / 修改时间：17:19:08" itemprop="dateCreated datePublished" datetime="2026-10-26T17:15:32+08:00">2026-10-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Kotlin/" itemprop="url" rel="index"><span itemprop="name">Kotlin</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">幕后字段是 Kotlin 属性在需要存储实际值时，编译器自动生成的私有字段。它用 `field` 关键字在自定义 getter/setter 中访问。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Kotlin-幕后字段（Backing-Field）详解"><a href="#Kotlin-幕后字段（Backing-Field）详解" class="headerlink" title="Kotlin 幕后字段（Backing Field）详解"></a>Kotlin 幕后字段（Backing Field）详解</h1><p><strong>幕后字段</strong>是 Kotlin 属性在<strong>需要存储实际值</strong>时，编译器自动生成的私有字段。它用 <code>field</code> 关键字在自定义 getter&#x2F;setter 中访问。</p>
+<p>核心结论：</p>
+<ul>
+<li><strong>有自定义 getter&#x2F;setter 且用到 <code>field</code></strong> → 有幕后字段。</li>
+<li><strong>计算属性（只依赖其他属性）</strong> → 没有幕后字段。</li>
+<li><strong>扩展属性</strong> → 永远没有幕后字段。</li>
+<li><strong>抽象属性</strong> → 没有幕后字段。</li>
+</ul>
+<hr>
+<h2 id="一、什么是幕后字段"><a href="#一、什么是幕后字段" class="headerlink" title="一、什么是幕后字段"></a>一、什么是幕后字段</h2><p>Kotlin 属性本质上是一组 getter&#x2F;setter，但很多属性需要<strong>真正存一个值</strong>。这个实际存值的字段就是幕后字段。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译后大致等价：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;Alice&quot;</span>;   <span class="comment">// ← 幕后字段</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">setName</span><span class="params">(String value)</span> &#123; name = value; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>name</code> 这个属性有幕后字段，因为需要保存值。</p>
+<hr>
+<h2 id="二、什么时候有幕后字段"><a href="#二、什么时候有幕后字段" class="headerlink" title="二、什么时候有幕后字段"></a>二、什么时候有幕后字段</h2><p>满足以下条件之一，属性<strong>自动生成幕后字段</strong>：</p>
+<ol>
+<li>属性有初始化器：<code>var name = &quot;Alice&quot;</code>。</li>
+<li>属性在 <code>init</code> 块中被赋值。</li>
+<li>自定义 getter&#x2F;setter 中使用了 <code>field</code>。</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> a = <span class="number">1</span>                     <span class="comment">// 有幕后字段</span></span><br><span class="line">    <span class="keyword">var</span> b: <span class="built_in">Int</span> = <span class="number">0</span>                <span class="comment">// 有幕后字段</span></span><br><span class="line">        <span class="keyword">get</span>() = field + <span class="number">1</span>         <span class="comment">// 使用 field</span></span><br><span class="line">        <span class="keyword">set</span>(value) &#123; field = value &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> c: <span class="built_in">Int</span>                    <span class="comment">// 没有幕后字段</span></span><br><span class="line">        <span class="keyword">get</span>() = a + b</span><br><span class="line">        <span class="keyword">set</span>(value) &#123; a = value &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>c</code> 是计算属性，值来自 <code>a</code> 和 <code>b</code>，不需要单独存储，所以没有幕后字段。</p>
+<hr>
+<h2 id="三、field-关键字"><a href="#三、field-关键字" class="headerlink" title="三、field 关键字"></a>三、<code>field</code> 关键字</h2><p>只能在自定义 getter&#x2F;setter 中使用 <code>field</code>，它指向幕后字段。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String = <span class="string">&quot;&quot;</span></span><br><span class="line">        <span class="keyword">get</span>() = field.uppercase()</span><br><span class="line">        <span class="keyword">set</span>(value) &#123;</span><br><span class="line">            require(value.isNotBlank())</span><br><span class="line">            field = value.trim()</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>get()</code> 中 <code>field</code> 是当前存储值。</li>
+<li><code>set()</code> 中 <code>field = value</code> 是写入幕后字段。</li>
+<li>不能在 getter&#x2F;setter 外使用 <code>field</code>。</li>
+</ul>
+<p><strong>注意</strong>：如果在 getter 中直接写 <code>name</code>，会递归调用 getter，导致栈溢出。必须用 <code>field</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">get</span>() = name  <span class="comment">// 错误：无限递归</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、没有幕后字段的情况"><a href="#四、没有幕后字段的情况" class="headerlink" title="四、没有幕后字段的情况"></a>四、没有幕后字段的情况</h2><h3 id="4-1-计算属性"><a href="#4-1-计算属性" class="headerlink" title="4.1 计算属性"></a>4.1 计算属性</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Rectangle</span>(<span class="keyword">val</span> width: <span class="built_in">Int</span>, <span class="keyword">val</span> height: <span class="built_in">Int</span>) &#123;</span><br><span class="line">    <span class="keyword">val</span> area: <span class="built_in">Int</span></span><br><span class="line">        <span class="keyword">get</span>() = width * height   <span class="comment">// 没有幕后字段</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>area</code> 每次访问都计算，不存储。</p>
+<h3 id="4-2-扩展属性"><a href="#4-2-扩展属性" class="headerlink" title="4.2 扩展属性"></a>4.2 扩展属性</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> String.lastChar: <span class="built_in">Char</span></span><br><span class="line">    <span class="keyword">get</span>() = <span class="keyword">this</span>[length - <span class="number">1</span>]</span><br></pre></td></tr></table></figure>
+
+<p>扩展属性不能有幕后字段，因为不属于任何类实例。</p>
+<h3 id="4-3-抽象属性"><a href="#4-3-抽象属性" class="headerlink" title="4.3 抽象属性"></a>4.3 抽象属性</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> name: String   <span class="comment">// 没有幕后字段，由实现类提供</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-委托属性"><a href="#4-4-委托属性" class="headerlink" title="4.4 委托属性"></a>4.4 委托属性</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String <span class="keyword">by</span> lazy &#123; <span class="string">&quot;Alice&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>值存在委托对象里，属性本身没有幕后字段。</p>
+<h3 id="4-5-只读属性且无初始化器"><a href="#4-5-只读属性且无初始化器" class="headerlink" title="4.5 只读属性且无初始化器"></a>4.5 只读属性且无初始化器</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> x: <span class="built_in">Int</span></span><br><span class="line">    <span class="keyword">get</span>() = <span class="number">42</span>   <span class="comment">// 没有幕后字段</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、幕后字段与-lateinit、const"><a href="#五、幕后字段与-lateinit、const" class="headerlink" title="五、幕后字段与 lateinit、const"></a>五、幕后字段与 <code>lateinit</code>、<code>const</code></h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>幕后字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通 <code>var</code> 有初始化器</td>
+<td>有</td>
+<td>存值</td>
+</tr>
+<tr>
+<td>普通 <code>val</code> 有初始化器</td>
+<td>有</td>
+<td>存值</td>
+</tr>
+<tr>
+<td>计算属性</td>
+<td>无</td>
+<td>每次计算</td>
+</tr>
+<tr>
+<td>扩展属性</td>
+<td>无</td>
+<td>不属于实例</td>
+</tr>
+<tr>
+<td><code>lateinit var</code></td>
+<td>有</td>
+<td>延迟初始化，底层仍有字段</td>
+</tr>
+<tr>
+<td><code>const val</code></td>
+<td>无（编译期常量）</td>
+<td>内联到调用处，无字段</td>
+</tr>
+<tr>
+<td>委托属性</td>
+<td>无</td>
+<td>值在委托对象中</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、幕后字段与-Java-对比"><a href="#六、幕后字段与-Java-对比" class="headerlink" title="六、幕后字段与 Java 对比"></a>六、幕后字段与 Java 对比</h2><table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>属性 + 幕后字段 + getter&#x2F;setter</td>
+<td>字段 + 手写 getter&#x2F;setter</td>
+</tr>
+<tr>
+<td><code>field</code> 关键字</td>
+<td><code>this.field</code></td>
+</tr>
+<tr>
+<td>计算属性无字段</td>
+<td>方法无字段</td>
+</tr>
+<tr>
+<td><code>const val</code> 编译期常量</td>
+<td><code>static final</code> 常量</td>
+</tr>
+</tbody></table>
+<p>Kotlin 的幕后字段相当于 Java 中私有字段，但由编译器自动管理。</p>
+<hr>
+<h2 id="七、常见面试题与答案"><a href="#七、常见面试题与答案" class="headerlink" title="七、常见面试题与答案"></a>七、常见面试题与答案</h2><p><strong>Q1：什么是幕后字段？</strong><br>A：Kotlin 属性在需要存储实际值时，编译器自动生成的私有字段，用 <code>field</code> 在 getter&#x2F;setter 中访问。</p>
+<p><strong>Q2：什么时候有幕后字段？</strong><br>A：属性有初始化器、在 <code>init</code> 中赋值、或 getter&#x2F;setter 中使用 <code>field</code> 时。</p>
+<p><strong>Q3：什么时候没有幕后字段？</strong><br>A：计算属性、扩展属性、抽象属性、委托属性、<code>const val</code>。</p>
+<p><strong>Q4：<code>field</code> 能用在 getter&#x2F;setter 外吗？</strong><br>A：不能，只能在自定义访问器中使用。</p>
+<p><strong>Q5：为什么 getter 中不能直接写属性名？</strong><br>A：会递归调用 getter，导致栈溢出，必须用 <code>field</code>。</p>
+<p><strong>Q6：扩展属性能有幕后字段吗？</strong><br>A：不能，扩展属性不属于实例，无法存储状态。</p>
+<p><strong>Q7：<code>lateinit</code> 有幕后字段吗？</strong><br>A：有，底层仍需要字段存储值，只是延迟初始化。</p>
+<p><strong>Q8：<code>const val</code> 有幕后字段吗？</strong><br>A：没有，编译期常量内联到调用处。</p>
+<p><strong>Q9：委托属性有幕后字段吗？</strong><br>A：没有，值存在委托对象中。</p>
+<p><strong>Q10：幕后字段和 Java 字段区别？</strong><br>A：Kotlin 幕后字段由编译器生成，用 <code>field</code> 访问；Java 字段直接声明。</p>
+<hr>
+<h2 id="八、完整示例"><a href="#八、完整示例" class="headerlink" title="八、完整示例"></a>八、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    <span class="comment">// 有幕后字段</span></span><br><span class="line">    <span class="keyword">var</span> name: String = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">        <span class="keyword">get</span>() = field.uppercase()</span><br><span class="line">        <span class="keyword">set</span>(value) &#123;</span><br><span class="line">            require(value.isNotBlank())</span><br><span class="line">            field = value.trim()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 没有幕后字段（计算属性）</span></span><br><span class="line">    <span class="keyword">val</span> nameLength: <span class="built_in">Int</span></span><br><span class="line">        <span class="keyword">get</span>() = name.length</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 有幕后字段（lateinit）</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> email: String</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 扩展属性：没有幕后字段</span></span><br><span class="line"><span class="keyword">val</span> String.lastChar: <span class="built_in">Char</span></span><br><span class="line">    <span class="keyword">get</span>() = <span class="keyword">this</span>[length - <span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User()</span><br><span class="line">    println(user.name)        <span class="comment">// ALICE</span></span><br><span class="line">    println(user.nameLength)  <span class="comment">// 5</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><ul>
+<li>幕后字段是属性实际存储值的私有字段，用 <code>field</code> 访问。</li>
+<li>有初始化器、<code>init</code> 赋值、使用 <code>field</code> 时生成幕后字段。</li>
+<li>计算属性、扩展属性、抽象属性、委托属性、<code>const val</code> 没有幕后字段。</li>
+<li><code>field</code> 只能在自定义 getter&#x2F;setter 中使用，避免递归。</li>
+<li>面试高频：何时有&#x2F;无幕后字段、<code>field</code> 用法、递归问题、扩展属性。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/24/002-kotlin-objects/" rel="prev" title="Kotlin 对象声明与对象表达式">
+                  <i class="fa fa-angle-left"></i> Kotlin 对象声明与对象表达式
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/konokol" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
