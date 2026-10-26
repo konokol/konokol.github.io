@@ -1,5 +1,5 @@
 ---
-title: 002-kotlin-nested-class
+title: Kotlin 中的嵌套类和内部类
 category: Android
 date: 2026-10-24 09:42:53
 tags: Kotlin
