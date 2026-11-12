@@ -226,155 +226,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java 8函数式数据处理</title>
-    <url>/2017/12/27/001-java-8-stream/</url>
-    <content><![CDATA[<h1 id="1-流"><a href="#1-流" class="headerlink" title="1 流"></a>1 流</h1><h2 id="1-1-流是什么"><a href="#1-1-流是什么" class="headerlink" title="1.1 流是什么"></a>1.1 流是什么</h2><p><strong>流</strong>是Java 8中新引入的概念，它允许你以声明式方式处理数据集合（通过查询语句来表达，而不是临时编写一个实现）。</p>
-<p>举个例子，筛选出价格大于¥50的菜品，并对这些菜品进行排序，最后返回菜品名称的集合，在Java 8之前：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//第一步，筛选</span></span><br><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">tempList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(dishes.size());</span><br><span class="line"><span class="keyword">for</span> (Dish dish : dishes) &#123;</span><br><span class="line">	<span class="keyword">if</span> (dish.getPriceCent() &gt; <span class="number">5000</span>) &#123;</span><br><span class="line">		tempList.add(dish);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//第二步，排序</span></span><br><span class="line">Collections.sort(tempList, <span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt;() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPriceCent() - d2.getPriceCent();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//第三步，返回名称集合</span></span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(tempList.size())</span><br><span class="line"><span class="keyword">for</span> (Dish dish : tempList) &#123;</span><br><span class="line">	result.add(dish.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在Java 8中，引入了流的概念之后，结合Lambda表达式：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">							.filter(dish -&gt; dish.getPriceCent() &gt; <span class="number">5000</span>)</span><br><span class="line">							.sorted(comparing(Dish::getPriceCent))</span><br><span class="line">							.map(Dish::getName)</span><br><span class="line">							.collect(toList());</span><br></pre></td></tr></table></figure>
-
-<p>流式方法的好处：</p>
-<ul>
-<li>代码是以声明性方式写的，说明想要完成什么，而不是如何实现一个操作；</li>
-<li>把几个基本操作链接起来，用以表达复杂的数据操作流水线，使代码清晰可读。</li>
-</ul>
-<p>使用Java 8的Stream API可以写出这样的代码：</p>
-<ul>
-<li>声明性——更简洁 ，更易读</li>
-<li>可复合——更灵活</li>
-<li>可并行——性能更好</li>
-</ul>
-<h2 id="1-2-流简介"><a href="#1-2-流简介" class="headerlink" title="1.2 流简介"></a>1.2 流简介</h2><h3 id="1-2-1-概念和术语"><a href="#1-2-1-概念和术语" class="headerlink" title="1.2.1 概念和术语"></a>1.2.1 概念和术语</h3><p>Java 8中的集合支持一个新的stream方法，它会返回一个流，当然也有很多其他方法，比如利用数值范围或者I&#x2F;O资源也可以生成流元素。</p>
-<p>定义：<strong>从支持数据处理操作的源生成得元素序列。</strong></p>
-<p>关键概念：</p>
-<p>|术语 			|说明	|<br>|—-			|—-		|<br>|元素序列		|类似集合，流提供一个接口，可以访问特定元素类型的一组有序值。集合讲的是数据，流讲的是计算。|<br>|源				|流会使用一个提供数据的源，比如集合、数组或者是I&#x2F;O. 从有序集合生成流时会保留原有的序列。|<br>|数据处理操作	|流的数据处理功能类似于数据库的操作，以及函数式编程语言中的常用操作，如filter、map、reduce、find、match、sort等。流操作可以顺序执行，也可以并行执行。|<br>|流水线			|很多的流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个流水线。|<br>|内部迭代		|和使用迭代器进行显示迭代的集合不同，流的迭代操作是在背后进行的。|</p>
-<h3 id="1-2-2-外部迭代与内部迭代"><a href="#1-2-2-外部迭代与内部迭代" class="headerlink" title="1.2.2 外部迭代与内部迭代"></a>1.2.2 外部迭代与内部迭代</h3><p>使用Collection接口需要用户自己去做迭代，称为<strong>外部迭代</strong>。</p>
-<p>使用Stream进行的迭代是<strong>内部迭代</strong>，Stream已经帮你把迭代做了，你只需要告诉它你需要干什么就可以了。</p>
-<p>外部迭代：<br><img src="/../img/java8-out-iterator.PNG" alt="外部迭代"></p>
-<p>内部迭代：<br><img src="/../img/java8-inner-iterator.PNG"></p>
-<h2 id="1-3-常见的流操作"><a href="#1-3-常见的流操作" class="headerlink" title="1.3 常见的流操作"></a>1.3 常见的流操作</h2><h3 id="1-3-1-collect-toList"><a href="#1-3-1-collect-toList" class="headerlink" title="1.3.1 collect(toList)"></a>1.3.1 collect(toList)</h3><p>collect(toList)方法由Stream里的值生成一个列表。of方法可以生成一个流对象。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-2-map"><a href="#1-3-2-map" class="headerlink" title="1.3.2 map"></a>1.3.2 map</h3><p>map操作可以将一个流中的一种值转换成另一种类型的值，生成一个新的流(一对一映射)。比如，将一个集合中的字符串全部转换成大写。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">upperCaseList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;talk&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cheap&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;show&quot;</span>, <span class="string">&quot;me&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;code&quot;</span>)</span><br><span class="line">                .map(string -&gt; string.toUpperCase())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[TALK,IS,CHEAP,,,SHOW,ME,THE,CODE]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p> <img src="/../img/java8-map.PNG" alt="Java 8 map"></p>
-<p>map操作传入的Lambda表达式必须和Function接口的签名一致。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt; &#123;</span><br><span class="line">    <span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-3-flatMap"><a href="#1-3-3-flatMap" class="headerlink" title="1.3.3 flatMap"></a>1.3.3 flatMap</h3><p>flatMap方法使一个流中的每个值都换成另外一个流，然后把所有的流都连接起来成为一个流（笛卡尔乘积）。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//找出两个数组中共同的元素，形成一个集合</span></span><br><span class="line"></span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array1</span> <span class="operator">=</span> &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>&#125;;</span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array2</span> <span class="operator">=</span> &#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">11</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;Integer[]&gt; <span class="variable">list</span> <span class="operator">=</span> Stream</span><br><span class="line">                .of(array1)</span><br><span class="line">                .flatMap(a1 -&gt; Stream.of(array2).filter(a1::equals).map(a2 -&gt; <span class="keyword">new</span> <span class="title class_">Integer</span>[]&#123;a1, a2&#125;))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">  </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[&lt;2, 2&gt;, &lt;3, 3&gt;, &lt;5, 5&gt;, &lt;7, 7&gt;]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>flatMap操作接收的Lambda表达式必须与Function接口的签名一致，传入的范型为Function&lt;? super T, ? extends Stream&lt;? extends R&gt;&gt;.</p>
-<h3 id="1-3-4-filter"><a href="#1-3-4-filter" class="headerlink" title="1.3.4 filter"></a>1.3.4 filter</h3><p>filter用来遍历数据并选出符合特定条件的元素。比如筛选出一个字符串集合中仅含数字的字符串。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">digitList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a1c&quot;</span>, <span class="string">&quot;123&quot;</span>, <span class="string">&quot;1q2qw&quot;</span>, <span class="string">&quot;0.5&quot;</span>)</span><br><span class="line">                .filter(string -&gt; TextUtils.isDigitsOnly(string))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">                </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[123]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="/../img/java8-filter.PNG"></p>
-<p>同样，filter操作传入的Lambda表达式必须和Predicate接口的签名一致。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-5-distinct"><a href="#1-3-5-distinct" class="headerlink" title="1.3.5 distinct"></a>1.3.5 distinct</h3><p>disdint方法会返回一个元素各异的流，简单来说，就是滤重（根据元素的hashCode和equals方法）。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">distinctList</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">                .distinct()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4]</span></span><br><span class="line"><span class="comment">*/</span>	</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-6-limit"><a href="#1-3-6-limit" class="headerlink" title="1.3.6 limit"></a>1.3.6 limit</h3><p>limit(n)会返回一个不超过给定长度的流。如果流是有序的，则最多会返回前n个元素。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .limit(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-7-skip"><a href="#1-3-7-skip" class="headerlink" title="1.3.7 skip"></a>1.3.7 skip</h3><p>skip(n)，会返回扔掉前n个元素的流，如果流中元素不超过n，则会返回一个空的流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .skip(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*	</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[4,5,6,7]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-8-min和max"><a href="#1-3-8-min和max" class="headerlink" title="1.3.8 min和max"></a>1.3.8 min和max</h3><p>求最小值和求最大值。比如求菜品集合中价格最低和最高的菜。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">dishes</span> <span class="operator">=</span> ...</span><br><span class="line"><span class="type">Dish</span> <span class="variable">max</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.max(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br><span class="line">	</span><br><span class="line"><span class="type">Dish</span> <span class="variable">min</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.mix(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-9-reduce"><a href="#1-3-9-reduce" class="headerlink" title="1.3.9 reduce"></a>1.3.9 reduce</h3><p>reduce操作可以从一组值中生成一个值，实际上max和min也是reduce操作，因为太常用，所以被纳入了标准库中。举例，求和：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">	.reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</span><br></pre></td></tr></table></figure>
-
-<p><img src="/../img/java8-reduce.PNG" alt="reduce"></p>
-<p>reduce对应的操作有3个重载的方法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//无初始值的</span></span><br><span class="line"><span class="type">Optional</span>&lt;T&gt; <span class="title function_">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">boolean</span> <span class="variable">foundAny</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream) &#123;</span><br><span class="line">	<span class="keyword">if</span> (!foundAny) &#123;</span><br><span class="line">	   foundAny = <span class="literal">true</span>;</span><br><span class="line">    	result = element;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	result = accumulator.apply(result, element);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> foundAny ? Optional.of(result) : Optional.empty();</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//带初始值的</span></span><br><span class="line"><span class="type">T</span> <span class="title function_">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//参数带两个BiFuction的</span></span><br><span class="line">&lt;U&gt; <span class="type">U</span> <span class="title function_">reduce</span><span class="params">(U identity,</span></span><br><span class="line"><span class="params">				BiFunction&lt;U, ? <span class="built_in">super</span> T, U&gt; accumulator,</span></span><br><span class="line"><span class="params">             BinaryOperator&lt;U&gt; combiner)</span>;</span><br><span class="line">             </span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">U</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
-
-<h3 id="1-3-10-anyMatch、allMatch和noneMatch"><a href="#1-3-10-anyMatch、allMatch和noneMatch" class="headerlink" title="1.3.10 anyMatch、allMatch和noneMatch"></a>1.3.10 anyMatch、allMatch和noneMatch</h3><p>anyMatch判断流中是否至少有一个元素能匹配给定的条件，返回一个boolean值。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="variable">hasNullElements</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Java&quot;</span>, <span class="string">&quot;Python&quot;</span>, <span class="string">&quot;C#&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;Ruby&quot;</span>, <span class="string">&quot;Go&quot;</span>, <span class="string">&quot;Object C&quot;</span>)</span><br><span class="line">               .anyMatch(Objects::isNull);</span><br></pre></td></tr></table></figure>
-
-<p>allMatch检查流中流中所有元素是否匹配给定的条件，返回boolean值。</p>
-<p>noneMatch检查流中所以元素是否都不匹配给定的条件，返回boolean值。</p>
-<h3 id="1-3-11-findAny与findFirst"><a href="#1-3-11-findAny与findFirst" class="headerlink" title="1.3.11 findAny与findFirst"></a>1.3.11 findAny与findFirst</h3><p>findAny找到流中任意一个元素(通常是第一个)，返回一个Optional对象，如果流是空的，返回一个值为空的Optional对象，如果找到的元素刚好是空值，则抛出一个NullPointerException。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Optional</span>&lt;T&gt; &#123;</span><br><span class="line">	T t;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Optional</span>&lt;Integer&gt; <span class="variable">optional</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .findAny();</span><br><span class="line">                </span><br><span class="line"><span class="comment">//执行多次optional.get()始终是1</span></span><br></pre></td></tr></table></figure>
-<p>如果使用的是并行的流，那么findAny方法返回的值则是不确定的，比如下面的例子：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">array</span> <span class="operator">=</span> Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>);</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行多次返回值分别是：</span></span><br><span class="line"><span class="comment">第1次：</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">第2次：</span></span><br><span class="line"><span class="comment">4</span></span><br><span class="line"><span class="comment">7</span></span><br><span class="line"><span class="comment">2</span></span><br><span class="line"><span class="comment">6</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-<p>findAny操作一般和filter结合起来用，用于筛选。</p>
-<p>如果想始终找到第一个元素，则应该用findFirst操作，即使是并行的流，页始终能返回第一个元素。</p>
-<p><em>短路求值：对于有些操作，不必处理整个流就能得到结果，就像用 || 连接起来的布尔表达式求值一样，只要提前找到一个为true的值就直接返回。流的操作中，anyMatch、findAny、findFirst都是短路操作，limit也是。</em></p>
-<h2 id="1-4-流与集合"><a href="#1-4-流与集合" class="headerlink" title="1.4 流与集合"></a>1.4 流与集合</h2><h3 id="1-4-1-流与集合概念的差异"><a href="#1-4-1-流与集合概念的差异" class="headerlink" title="1.4.1 流与集合概念的差异"></a>1.4.1 流与集合概念的差异</h3><p>从前面的例子中可以看到，通过Stream.of(…)方法可以得到一个流对象，看起来数据源似乎是保存在了流对象中，这和集合中保存一组数据很类似。但是，最终从流中获取一个集合，还需要调用collect(toList())方法，由此可见，流并不是集合。</p>
-<p>流与集合到底有什么差异呢？举一个形象的例子，存在DVD中的电影，这就是一个集合，因为它包含了电影的全部数据，而网上在线播放的视频则是一个视频流，它只加载你当前观看的这几帧，不用等到所有的数据都加载完了才能看。</p>
-<p>所以简单来讲，集合与流之间的差异就在于何时进行计算。集合是内存中的一种数据结构，它包含了数据源的所有值，集合的每个元素都需要先计算出来然后再加入到集合中。而流的元素则是按需计算，仅仅在用户需要的时候才会提取值，这是一种生产者—消费者的关系，只有消费者要求的时候才会去计算值。</p>
-<h3 id="1-4-2-流只能遍历一次"><a href="#1-4-2-流只能遍历一次" class="headerlink" title="1.4.2 流只能遍历一次"></a>1.4.2 流只能遍历一次</h3><p>和迭代器类似，流只能遍历一次，遍历完成之后，这个流就已经被消费掉了。如果想再次遍历，需从数据源重新获取一个流（如果数据源是可重复的比如集合，这会很容易，但如果像I&#x2F;O这种的话，就会很麻烦）。</p>
-<p>重复消费一个流会抛出IllegalArgumentException，表示流已经被操作，或者关闭。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; firms = Arrays.asList(&quot;Google&quot;, &quot;AT&amp;T&quot;, &quot;Amazon&quot;, &quot;Facebook&quot;, &quot;Oracle&quot;, &quot;MicroSoft&quot;);</span><br><span class="line">Stream&lt;String&gt; stream = Stream.of(firms);</span><br><span class="line">stream.forEach(System.out::println);</span><br><span class="line">stream.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-5-流的构建"><a href="#1-5-流的构建" class="headerlink" title="1.5 流的构建"></a>1.5 流的构建</h2><h3 id="1-5-1-数值流"><a href="#1-5-1-数值流" class="headerlink" title="1.5.1 数值流"></a>1.5.1 数值流</h3><p>在有些流的操作中，流中的元素如果是数值，会不可避免的产生装箱和拆箱的操作，比如，对菜品的价格求和：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line">int sumPrice = dishes.stream()</span><br><span class="line">		.map(Dish::getPrice)</span><br><span class="line">		.reduce(0, Integer::sum);</span><br></pre></td></tr></table></figure>
-<p>这段代码中，map操作会生成一个Stream<T>的流，因此，就需要将int类型装箱成Integer。在Java 8的Stream API中，为了避免这种拆装箱，提供了原始类型流特化，专门支持处理数值流。</p>
-<h4 id="1-5-1-1-原始类型流特化"><a href="#1-5-1-1-原始类型流特化" class="headerlink" title="1.5.1.1 原始类型流特化"></a>1.5.1.1 原始类型流特化</h4><p>Java 8中引入的原始类型流特化流有3个：IntStream、LongStream和DoubleStream，分别将流的元素特化为对应的基础类型。相应的这些流中也多了一些常用的数值操作，比如sum, average, max, min等。</p>
-<p>将流转化成特定的数值流常用的操作是map，对应的，map操作也有几个特定的方法，mapToInt、mapToLong、mapToDouble。比如上面对菜品价格求和的操作，就可以用IntStream来做：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line"><span class="type">int</span> <span class="variable">sumPrice</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice)</span><br><span class="line">		.sum;</span><br></pre></td></tr></table></figure>
-
-<p>有时候，也会有将数值流转回对象流的需求，这时候只需要将基础元素进行装箱操作就可以，使用的操作是boxed。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intSream</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">stream</span> <span class="operator">=</span> intStream.boxed();</span><br></pre></td></tr></table></figure>
-
-<p>上面讲findAny和findFirst操作的时候，提到了Optional对象，类似的，Optional类也对数值的基础类型进行了特化，有IntOptitonal、LongOptional和DoubleOptional三个类。</p>
-<h4 id="1-5-1-2-数值范围"><a href="#1-5-1-2-数值范围" class="headerlink" title="1.5.1.2 数值范围"></a>1.5.1.2 数值范围</h4><p>Java 8引入了两个可以用于InStream和LongStream的静态方法，range和rangeClose。区别是range不包含结束值，rangeClosed包含结束值。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.range(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.rangeClosed(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9,10]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="1-5-2-构建流的几种方式"><a href="#1-5-2-构建流的几种方式" class="headerlink" title="1.5.2 构建流的几种方式"></a>1.5.2 构建流的几种方式</h3><h4 id="1-5-2-1-由值创建流"><a href="#1-5-2-1-由值创建流" class="headerlink" title="1.5.2.1 由值创建流"></a>1.5.2.1 由值创建流</h4><p>使用Stream.of(T t …)方法可以创建出一个流，Stream.empty()可以创建一个没有元素的流：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">emptyStream</span> <span class="operator">=</span> Stream.empty();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-2-由数组创建流"><a href="#1-5-2-2-由数组创建流" class="headerlink" title="1.5.2.2 由数组创建流"></a>1.5.2.2 由数组创建流</h4><p>Arrays.stream可以从数组创建一个流，参数是一个数组。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] <span class="variable">intArray</span> <span class="operator">=</span> &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>&#125;;</span><br><span class="line">        </span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Arrays.stream(stringArray);</span><br><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> Arrays.stream(intArray);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">integerStream</span> <span class="operator">=</span> Arrays.stream(intArray).boxed();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-3-由集合生成流"><a href="#1-5-2-3-由集合生成流" class="headerlink" title="1.5.2.3 由集合生成流"></a>1.5.2.3 由集合生成流</h4><p>Java的Collection接口中，引入了stream()和parallelStream()两个默认方法，可以生成流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Arrays.asList(stringArray);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stream</span> <span class="operator">=</span> list.stream();</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">parallelStream</span> <span class="operator">=</span> list.parallelStream();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-4-由文件生成流"><a href="#1-5-2-4-由文件生成流" class="headerlink" title="1.5.2.4 由文件生成流"></a>1.5.2.4 由文件生成流</h4><p>Java 8的NIO API中，很多操作都可以返回一个流。比如，Files.lines就会根据文件内容返回一个流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Stream</span>&lt;String&gt; <span class="variable">lines</span> <span class="operator">=</span> Files.lines(Paths.get(<span class="string">&quot;.gitignore&quot;</span>), Charset.forName(<span class="string">&quot;utf-8&quot;</span>))</span><br><span class="line">                    .flatMap(line -&gt; Arrays.stream(line.split(<span class="string">&quot; &quot;</span>)));</span><br><span class="line">            lines.forEach(word -&gt; Printer.println(word));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="1-5-2-5-由函数生成流：创建无限流"><a href="#1-5-2-5-由函数生成流：创建无限流" class="headerlink" title="1.5.2.5 由函数生成流：创建无限流"></a>1.5.2.5 由函数生成流：创建无限流</h4><p>Stream API中提供了2个静态方法来从方法中生成流：Stream.iterate和Stream.generate，这2个方法都可以用来创建无限流，只要不结束，可以一直算下去。</p>
-<p><strong>iterate</strong></p>
-<p>iterate方法有两个重载的方法：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//有结束条件的</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(T seed, Predicate&lt;? <span class="built_in">super</span> T&gt; hasNext, UnaryOperator&lt;T&gt; next)</span></span><br></pre></td></tr></table></figure>
-<p>和</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//没有限制，可以真正生成无限流</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(<span class="keyword">final</span> T seed, <span class="keyword">final</span> UnaryOperator&lt;T&gt; f)</span></span><br></pre></td></tr></table></figure>
-
-<p>例如，生成一个斐波那契数列：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.iterate(<span class="keyword">new</span> <span class="title class_">int</span>[]&#123;<span class="number">0</span>, <span class="number">1</span>&#125;,  t -&gt; <span class="keyword">new</span> <span class="title class_">int</span>[] &#123;t[<span class="number">1</span>], t[<span class="number">0</span>] + t[<span class="number">1</span>]&#125;)</span><br><span class="line">                .map(t -&gt; t[<span class="number">0</span>])</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-
-
-<p><strong>generate</strong></p>
-<p>和iterate方法类似，generate也生成一个无限流。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">generate</span><span class="params">(Supplier&lt;? extends T&gt; s)</span></span><br></pre></td></tr></table></figure>
-
-<p>generate方法的参数是一个Supplier，它可以是无状态的，也可以是有状态的。</p>
-<p>无状态的Supplier，不会记录上一个状态，比如生成随机数，</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.generate(Math::random)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-<p>有状态的Supplier还可以是有状态的，它会记录前一个Supplier的状态（可以是值，属性等），比如还是生成一个斐波那契数列，在构建每一个元素时，都改变了supplier的属性：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntSupplier</span> <span class="variable">supplier</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IntSupplier</span>() &#123;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">pre</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">cur</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getAsInt</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldPre</span> <span class="operator">=</span> pre;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldCur</span> <span class="operator">=</span> cur;</span><br><span class="line">                <span class="built_in">this</span>.pre = cur;</span><br><span class="line">                <span class="built_in">this</span>.cur = oldPre + oldCur;</span><br><span class="line">                <span class="keyword">return</span> oldPre;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        IntStream.generate(supplier)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p>Author: Ivan J. Lee<br>Date  : 2017-12-27 23:56</p>
-]]></content>
-      <tags>
-        <tag>java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Kotlin 中的幕后字段</title>
     <url>/2026/10/26/002-kotlin-backing-field/</url>
     <content><![CDATA[<h1 id="Kotlin-幕后字段（Backing-Field）详解"><a href="#Kotlin-幕后字段（Backing-Field）详解" class="headerlink" title="Kotlin 幕后字段（Backing Field）详解"></a>Kotlin 幕后字段（Backing Field）详解</h1><p><strong>幕后字段</strong>是 Kotlin 属性在<strong>需要存储实际值</strong>时，编译器自动生成的私有字段。它用 <code>field</code> 关键字在自定义 getter&#x2F;setter 中访问。</p>
@@ -528,6 +379,155 @@
       </categories>
       <tags>
         <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 8函数式数据处理</title>
+    <url>/2017/12/27/001-java-8-stream/</url>
+    <content><![CDATA[<h1 id="1-流"><a href="#1-流" class="headerlink" title="1 流"></a>1 流</h1><h2 id="1-1-流是什么"><a href="#1-1-流是什么" class="headerlink" title="1.1 流是什么"></a>1.1 流是什么</h2><p><strong>流</strong>是Java 8中新引入的概念，它允许你以声明式方式处理数据集合（通过查询语句来表达，而不是临时编写一个实现）。</p>
+<p>举个例子，筛选出价格大于¥50的菜品，并对这些菜品进行排序，最后返回菜品名称的集合，在Java 8之前：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//第一步，筛选</span></span><br><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">tempList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(dishes.size());</span><br><span class="line"><span class="keyword">for</span> (Dish dish : dishes) &#123;</span><br><span class="line">	<span class="keyword">if</span> (dish.getPriceCent() &gt; <span class="number">5000</span>) &#123;</span><br><span class="line">		tempList.add(dish);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//第二步，排序</span></span><br><span class="line">Collections.sort(tempList, <span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Dish&gt;() &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Dish d1, Dish d2)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d1.getPriceCent() - d2.getPriceCent();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//第三步，返回名称集合</span></span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(tempList.size())</span><br><span class="line"><span class="keyword">for</span> (Dish dish : tempList) &#123;</span><br><span class="line">	result.add(dish.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Java 8中，引入了流的概念之后，结合Lambda表达式：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">result</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">							.filter(dish -&gt; dish.getPriceCent() &gt; <span class="number">5000</span>)</span><br><span class="line">							.sorted(comparing(Dish::getPriceCent))</span><br><span class="line">							.map(Dish::getName)</span><br><span class="line">							.collect(toList());</span><br></pre></td></tr></table></figure>
+
+<p>流式方法的好处：</p>
+<ul>
+<li>代码是以声明性方式写的，说明想要完成什么，而不是如何实现一个操作；</li>
+<li>把几个基本操作链接起来，用以表达复杂的数据操作流水线，使代码清晰可读。</li>
+</ul>
+<p>使用Java 8的Stream API可以写出这样的代码：</p>
+<ul>
+<li>声明性——更简洁 ，更易读</li>
+<li>可复合——更灵活</li>
+<li>可并行——性能更好</li>
+</ul>
+<h2 id="1-2-流简介"><a href="#1-2-流简介" class="headerlink" title="1.2 流简介"></a>1.2 流简介</h2><h3 id="1-2-1-概念和术语"><a href="#1-2-1-概念和术语" class="headerlink" title="1.2.1 概念和术语"></a>1.2.1 概念和术语</h3><p>Java 8中的集合支持一个新的stream方法，它会返回一个流，当然也有很多其他方法，比如利用数值范围或者I&#x2F;O资源也可以生成流元素。</p>
+<p>定义：<strong>从支持数据处理操作的源生成得元素序列。</strong></p>
+<p>关键概念：</p>
+<p>|术语 			|说明	|<br>|—-			|—-		|<br>|元素序列		|类似集合，流提供一个接口，可以访问特定元素类型的一组有序值。集合讲的是数据，流讲的是计算。|<br>|源				|流会使用一个提供数据的源，比如集合、数组或者是I&#x2F;O. 从有序集合生成流时会保留原有的序列。|<br>|数据处理操作	|流的数据处理功能类似于数据库的操作，以及函数式编程语言中的常用操作，如filter、map、reduce、find、match、sort等。流操作可以顺序执行，也可以并行执行。|<br>|流水线			|很多的流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个流水线。|<br>|内部迭代		|和使用迭代器进行显示迭代的集合不同，流的迭代操作是在背后进行的。|</p>
+<h3 id="1-2-2-外部迭代与内部迭代"><a href="#1-2-2-外部迭代与内部迭代" class="headerlink" title="1.2.2 外部迭代与内部迭代"></a>1.2.2 外部迭代与内部迭代</h3><p>使用Collection接口需要用户自己去做迭代，称为<strong>外部迭代</strong>。</p>
+<p>使用Stream进行的迭代是<strong>内部迭代</strong>，Stream已经帮你把迭代做了，你只需要告诉它你需要干什么就可以了。</p>
+<p>外部迭代：<br><img src="/../img/java8-out-iterator.PNG" alt="外部迭代"></p>
+<p>内部迭代：<br><img src="/../img/java8-inner-iterator.PNG"></p>
+<h2 id="1-3-常见的流操作"><a href="#1-3-常见的流操作" class="headerlink" title="1.3 常见的流操作"></a>1.3 常见的流操作</h2><h3 id="1-3-1-collect-toList"><a href="#1-3-1-collect-toList" class="headerlink" title="1.3.1 collect(toList)"></a>1.3.1 collect(toList)</h3><p>collect(toList)方法由Stream里的值生成一个列表。of方法可以生成一个流对象。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-2-map"><a href="#1-3-2-map" class="headerlink" title="1.3.2 map"></a>1.3.2 map</h3><p>map操作可以将一个流中的一种值转换成另一种类型的值，生成一个新的流(一对一映射)。比如，将一个集合中的字符串全部转换成大写。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">upperCaseList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;talk&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cheap&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;show&quot;</span>, <span class="string">&quot;me&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;code&quot;</span>)</span><br><span class="line">                .map(string -&gt; string.toUpperCase())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[TALK,IS,CHEAP,,,SHOW,ME,THE,CODE]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p> <img src="/../img/java8-map.PNG" alt="Java 8 map"></p>
+<p>map操作传入的Lambda表达式必须和Function接口的签名一致。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function</span>&lt;T, R&gt; &#123;</span><br><span class="line">    <span class="type">R</span> <span class="title function_">apply</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-3-flatMap"><a href="#1-3-3-flatMap" class="headerlink" title="1.3.3 flatMap"></a>1.3.3 flatMap</h3><p>flatMap方法使一个流中的每个值都换成另外一个流，然后把所有的流都连接起来成为一个流（笛卡尔乘积）。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//找出两个数组中共同的元素，形成一个集合</span></span><br><span class="line"></span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array1</span> <span class="operator">=</span> &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>&#125;;</span><br><span class="line"><span class="type">Integer</span>[] <span class="variable">array2</span> <span class="operator">=</span> &#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">11</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;Integer[]&gt; <span class="variable">list</span> <span class="operator">=</span> Stream</span><br><span class="line">                .of(array1)</span><br><span class="line">                .flatMap(a1 -&gt; Stream.of(array2).filter(a1::equals).map(a2 -&gt; <span class="keyword">new</span> <span class="title class_">Integer</span>[]&#123;a1, a2&#125;))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">  </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[&lt;2, 2&gt;, &lt;3, 3&gt;, &lt;5, 5&gt;, &lt;7, 7&gt;]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>flatMap操作接收的Lambda表达式必须与Function接口的签名一致，传入的范型为Function&lt;? super T, ? extends Stream&lt;? extends R&gt;&gt;.</p>
+<h3 id="1-3-4-filter"><a href="#1-3-4-filter" class="headerlink" title="1.3.4 filter"></a>1.3.4 filter</h3><p>filter用来遍历数据并选出符合特定条件的元素。比如筛选出一个字符串集合中仅含数字的字符串。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">digitList</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;a1c&quot;</span>, <span class="string">&quot;123&quot;</span>, <span class="string">&quot;1q2qw&quot;</span>, <span class="string">&quot;0.5&quot;</span>)</span><br><span class="line">                .filter(string -&gt; TextUtils.isDigitsOnly(string))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">                </span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[123]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/../img/java8-filter.PNG"></p>
+<p>同样，filter操作传入的Lambda表达式必须和Predicate接口的签名一致。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Predicate</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">test</span><span class="params">(T t)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-5-distinct"><a href="#1-3-5-distinct" class="headerlink" title="1.3.5 distinct"></a>1.3.5 distinct</h3><p>disdint方法会返回一个元素各异的流，简单来说，就是滤重（根据元素的hashCode和equals方法）。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">distinctList</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">                .distinct()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4]</span></span><br><span class="line"><span class="comment">*/</span>	</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-6-limit"><a href="#1-3-6-limit" class="headerlink" title="1.3.6 limit"></a>1.3.6 limit</h3><p>limit(n)会返回一个不超过给定长度的流。如果流是有序的，则最多会返回前n个元素。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .limit(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-7-skip"><a href="#1-3-7-skip" class="headerlink" title="1.3.7 skip"></a>1.3.7 skip</h3><p>skip(n)，会返回扔掉前n个元素的流，如果流中元素不超过n，则会返回一个空的流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">list</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .skip(<span class="number">3</span>)</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">	</span><br><span class="line"><span class="comment">/*	</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[4,5,6,7]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-8-min和max"><a href="#1-3-8-min和max" class="headerlink" title="1.3.8 min和max"></a>1.3.8 min和max</h3><p>求最小值和求最大值。比如求菜品集合中价格最低和最高的菜。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Dish&gt; <span class="variable">dishes</span> <span class="operator">=</span> ...</span><br><span class="line"><span class="type">Dish</span> <span class="variable">max</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.max(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br><span class="line">	</span><br><span class="line"><span class="type">Dish</span> <span class="variable">min</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">	.mix(Comparator.comparing(dish -&gt; dish.getPrice))</span><br><span class="line">	.get();</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-9-reduce"><a href="#1-3-9-reduce" class="headerlink" title="1.3.9 reduce"></a>1.3.9 reduce</h3><p>reduce操作可以从一组值中生成一个值，实际上max和min也是reduce操作，因为太常用，所以被纳入了标准库中。举例，求和：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">	.reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../img/java8-reduce.PNG" alt="reduce"></p>
+<p>reduce对应的操作有3个重载的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//无初始值的</span></span><br><span class="line"><span class="type">Optional</span>&lt;T&gt; <span class="title function_">reduce</span><span class="params">(BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">boolean</span> <span class="variable">foundAny</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream) &#123;</span><br><span class="line">	<span class="keyword">if</span> (!foundAny) &#123;</span><br><span class="line">	   foundAny = <span class="literal">true</span>;</span><br><span class="line">    	result = element;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	result = accumulator.apply(result, element);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> foundAny ? Optional.of(result) : Optional.empty();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//带初始值的</span></span><br><span class="line"><span class="type">T</span> <span class="title function_">reduce</span><span class="params">(T identity, BinaryOperator&lt;T&gt; accumulator)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">T</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//参数带两个BiFuction的</span></span><br><span class="line">&lt;U&gt; <span class="type">U</span> <span class="title function_">reduce</span><span class="params">(U identity,</span></span><br><span class="line"><span class="params">				BiFunction&lt;U, ? <span class="built_in">super</span> T, U&gt; accumulator,</span></span><br><span class="line"><span class="params">             BinaryOperator&lt;U&gt; combiner)</span>;</span><br><span class="line">             </span><br><span class="line"><span class="comment">//等价于</span></span><br><span class="line"><span class="type">U</span> <span class="variable">result</span> <span class="operator">=</span> identity;</span><br><span class="line"><span class="keyword">for</span> (T element : <span class="built_in">this</span> stream)</span><br><span class="line">    result = accumulator.apply(result, element)</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-10-anyMatch、allMatch和noneMatch"><a href="#1-3-10-anyMatch、allMatch和noneMatch" class="headerlink" title="1.3.10 anyMatch、allMatch和noneMatch"></a>1.3.10 anyMatch、allMatch和noneMatch</h3><p>anyMatch判断流中是否至少有一个元素能匹配给定的条件，返回一个boolean值。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="variable">hasNullElements</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Java&quot;</span>, <span class="string">&quot;Python&quot;</span>, <span class="string">&quot;C#&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;Ruby&quot;</span>, <span class="string">&quot;Go&quot;</span>, <span class="string">&quot;Object C&quot;</span>)</span><br><span class="line">               .anyMatch(Objects::isNull);</span><br></pre></td></tr></table></figure>
+
+<p>allMatch检查流中流中所有元素是否匹配给定的条件，返回boolean值。</p>
+<p>noneMatch检查流中所以元素是否都不匹配给定的条件，返回boolean值。</p>
+<h3 id="1-3-11-findAny与findFirst"><a href="#1-3-11-findAny与findFirst" class="headerlink" title="1.3.11 findAny与findFirst"></a>1.3.11 findAny与findFirst</h3><p>findAny找到流中任意一个元素(通常是第一个)，返回一个Optional对象，如果流是空的，返回一个值为空的Optional对象，如果找到的元素刚好是空值，则抛出一个NullPointerException。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Optional</span>&lt;T&gt; &#123;</span><br><span class="line">	T t;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Optional</span>&lt;Integer&gt; <span class="variable">optional</span> <span class="operator">=</span> Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)</span><br><span class="line">                .findAny();</span><br><span class="line">                </span><br><span class="line"><span class="comment">//执行多次optional.get()始终是1</span></span><br></pre></td></tr></table></figure>
+<p>如果使用的是并行的流，那么findAny方法返回的值则是不确定的，比如下面的例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">List</span>&lt;Integer&gt; <span class="variable">array</span> <span class="operator">=</span> Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>);</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line">Printer.println(array.parallelStream().findAny().get());</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行多次返回值分别是：</span></span><br><span class="line"><span class="comment">第1次：</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">第2次：</span></span><br><span class="line"><span class="comment">4</span></span><br><span class="line"><span class="comment">7</span></span><br><span class="line"><span class="comment">2</span></span><br><span class="line"><span class="comment">6</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Process finished with exit code 0</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>findAny操作一般和filter结合起来用，用于筛选。</p>
+<p>如果想始终找到第一个元素，则应该用findFirst操作，即使是并行的流，页始终能返回第一个元素。</p>
+<p><em>短路求值：对于有些操作，不必处理整个流就能得到结果，就像用 || 连接起来的布尔表达式求值一样，只要提前找到一个为true的值就直接返回。流的操作中，anyMatch、findAny、findFirst都是短路操作，limit也是。</em></p>
+<h2 id="1-4-流与集合"><a href="#1-4-流与集合" class="headerlink" title="1.4 流与集合"></a>1.4 流与集合</h2><h3 id="1-4-1-流与集合概念的差异"><a href="#1-4-1-流与集合概念的差异" class="headerlink" title="1.4.1 流与集合概念的差异"></a>1.4.1 流与集合概念的差异</h3><p>从前面的例子中可以看到，通过Stream.of(…)方法可以得到一个流对象，看起来数据源似乎是保存在了流对象中，这和集合中保存一组数据很类似。但是，最终从流中获取一个集合，还需要调用collect(toList())方法，由此可见，流并不是集合。</p>
+<p>流与集合到底有什么差异呢？举一个形象的例子，存在DVD中的电影，这就是一个集合，因为它包含了电影的全部数据，而网上在线播放的视频则是一个视频流，它只加载你当前观看的这几帧，不用等到所有的数据都加载完了才能看。</p>
+<p>所以简单来讲，集合与流之间的差异就在于何时进行计算。集合是内存中的一种数据结构，它包含了数据源的所有值，集合的每个元素都需要先计算出来然后再加入到集合中。而流的元素则是按需计算，仅仅在用户需要的时候才会提取值，这是一种生产者—消费者的关系，只有消费者要求的时候才会去计算值。</p>
+<h3 id="1-4-2-流只能遍历一次"><a href="#1-4-2-流只能遍历一次" class="headerlink" title="1.4.2 流只能遍历一次"></a>1.4.2 流只能遍历一次</h3><p>和迭代器类似，流只能遍历一次，遍历完成之后，这个流就已经被消费掉了。如果想再次遍历，需从数据源重新获取一个流（如果数据源是可重复的比如集合，这会很容易，但如果像I&#x2F;O这种的话，就会很麻烦）。</p>
+<p>重复消费一个流会抛出IllegalArgumentException，表示流已经被操作，或者关闭。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;String&gt; firms = Arrays.asList(&quot;Google&quot;, &quot;AT&amp;T&quot;, &quot;Amazon&quot;, &quot;Facebook&quot;, &quot;Oracle&quot;, &quot;MicroSoft&quot;);</span><br><span class="line">Stream&lt;String&gt; stream = Stream.of(firms);</span><br><span class="line">stream.forEach(System.out::println);</span><br><span class="line">stream.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-5-流的构建"><a href="#1-5-流的构建" class="headerlink" title="1.5 流的构建"></a>1.5 流的构建</h2><h3 id="1-5-1-数值流"><a href="#1-5-1-数值流" class="headerlink" title="1.5.1 数值流"></a>1.5.1 数值流</h3><p>在有些流的操作中，流中的元素如果是数值，会不可避免的产生装箱和拆箱的操作，比如，对菜品的价格求和：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line">int sumPrice = dishes.stream()</span><br><span class="line">		.map(Dish::getPrice)</span><br><span class="line">		.reduce(0, Integer::sum);</span><br></pre></td></tr></table></figure>
+<p>这段代码中，map操作会生成一个Stream<T>的流，因此，就需要将int类型装箱成Integer。在Java 8的Stream API中，为了避免这种拆装箱，提供了原始类型流特化，专门支持处理数值流。</p>
+<h4 id="1-5-1-1-原始类型流特化"><a href="#1-5-1-1-原始类型流特化" class="headerlink" title="1.5.1.1 原始类型流特化"></a>1.5.1.1 原始类型流特化</h4><p>Java 8中引入的原始类型流特化流有3个：IntStream、LongStream和DoubleStream，分别将流的元素特化为对应的基础类型。相应的这些流中也多了一些常用的数值操作，比如sum, average, max, min等。</p>
+<p>将流转化成特定的数值流常用的操作是map，对应的，map操作也有几个特定的方法，mapToInt、mapToLong、mapToDouble。比如上面对菜品价格求和的操作，就可以用IntStream来做：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;Dish&gt; dishes ...</span><br><span class="line"><span class="type">int</span> <span class="variable">sumPrice</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice)</span><br><span class="line">		.sum;</span><br></pre></td></tr></table></figure>
+
+<p>有时候，也会有将数值流转回对象流的需求，这时候只需要将基础元素进行装箱操作就可以，使用的操作是boxed。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intSream</span> <span class="operator">=</span> dishes.stream()</span><br><span class="line">		.mapToInt(Dish::getPrice);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">stream</span> <span class="operator">=</span> intStream.boxed();</span><br></pre></td></tr></table></figure>
+
+<p>上面讲findAny和findFirst操作的时候，提到了Optional对象，类似的，Optional类也对数值的基础类型进行了特化，有IntOptitonal、LongOptional和DoubleOptional三个类。</p>
+<h4 id="1-5-1-2-数值范围"><a href="#1-5-1-2-数值范围" class="headerlink" title="1.5.1.2 数值范围"></a>1.5.1.2 数值范围</h4><p>Java 8引入了两个可以用于InStream和LongStream的静态方法，range和rangeClose。区别是range不包含结束值，rangeClosed包含结束值。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.range(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> IntStream.rangeClosed(<span class="number">1</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">array</span> <span class="operator">=</span> intStream.toArray();</span><br><span class="line">        Printer.print(array);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	output:</span></span><br><span class="line"><span class="comment">	[1,2,3,4,5,6,7,8,9,10]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-5-2-构建流的几种方式"><a href="#1-5-2-构建流的几种方式" class="headerlink" title="1.5.2 构建流的几种方式"></a>1.5.2 构建流的几种方式</h3><h4 id="1-5-2-1-由值创建流"><a href="#1-5-2-1-由值创建流" class="headerlink" title="1.5.2.1 由值创建流"></a>1.5.2.1 由值创建流</h4><p>使用Stream.of(T t …)方法可以创建出一个流，Stream.empty()可以创建一个没有元素的流：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Stream.of(<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">emptyStream</span> <span class="operator">=</span> Stream.empty();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-2-由数组创建流"><a href="#1-5-2-2-由数组创建流" class="headerlink" title="1.5.2.2 由数组创建流"></a>1.5.2.2 由数组创建流</h4><p>Arrays.stream可以从数组创建一个流，参数是一个数组。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] <span class="variable">intArray</span> <span class="operator">=</span> &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>&#125;;</span><br><span class="line">        </span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stringStream</span> <span class="operator">=</span> Arrays.stream(stringArray);</span><br><span class="line"><span class="type">IntStream</span> <span class="variable">intStream</span> <span class="operator">=</span> Arrays.stream(intArray);</span><br><span class="line"><span class="type">Stream</span>&lt;Integer&gt; <span class="variable">integerStream</span> <span class="operator">=</span> Arrays.stream(intArray).boxed();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-3-由集合生成流"><a href="#1-5-2-3-由集合生成流" class="headerlink" title="1.5.2.3 由集合生成流"></a>1.5.2.3 由集合生成流</h4><p>Java的Collection接口中，引入了stream()和parallelStream()两个默认方法，可以生成流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span>[] <span class="variable">stringArray</span> <span class="operator">=</span> &#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;MicroSoft&quot;</span>, <span class="string">&quot;Google&quot;</span>, <span class="string">&quot;Facebook&quot;</span>, <span class="string">&quot;Amazon&quot;</span>&#125;;</span><br><span class="line"><span class="type">List</span>&lt;String&gt; <span class="variable">list</span> <span class="operator">=</span> Arrays.asList(stringArray);</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">stream</span> <span class="operator">=</span> list.stream();</span><br><span class="line"><span class="type">Stream</span>&lt;String&gt; <span class="variable">parallelStream</span> <span class="operator">=</span> list.parallelStream();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-4-由文件生成流"><a href="#1-5-2-4-由文件生成流" class="headerlink" title="1.5.2.4 由文件生成流"></a>1.5.2.4 由文件生成流</h4><p>Java 8的NIO API中，很多操作都可以返回一个流。比如，Files.lines就会根据文件内容返回一个流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Stream</span>&lt;String&gt; <span class="variable">lines</span> <span class="operator">=</span> Files.lines(Paths.get(<span class="string">&quot;.gitignore&quot;</span>), Charset.forName(<span class="string">&quot;utf-8&quot;</span>))</span><br><span class="line">                    .flatMap(line -&gt; Arrays.stream(line.split(<span class="string">&quot; &quot;</span>)));</span><br><span class="line">            lines.forEach(word -&gt; Printer.println(word));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="1-5-2-5-由函数生成流：创建无限流"><a href="#1-5-2-5-由函数生成流：创建无限流" class="headerlink" title="1.5.2.5 由函数生成流：创建无限流"></a>1.5.2.5 由函数生成流：创建无限流</h4><p>Stream API中提供了2个静态方法来从方法中生成流：Stream.iterate和Stream.generate，这2个方法都可以用来创建无限流，只要不结束，可以一直算下去。</p>
+<p><strong>iterate</strong></p>
+<p>iterate方法有两个重载的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//有结束条件的</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(T seed, Predicate&lt;? <span class="built_in">super</span> T&gt; hasNext, UnaryOperator&lt;T&gt; next)</span></span><br></pre></td></tr></table></figure>
+<p>和</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//没有限制，可以真正生成无限流</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">iterate</span><span class="params">(<span class="keyword">final</span> T seed, <span class="keyword">final</span> UnaryOperator&lt;T&gt; f)</span></span><br></pre></td></tr></table></figure>
+
+<p>例如，生成一个斐波那契数列：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.iterate(<span class="keyword">new</span> <span class="title class_">int</span>[]&#123;<span class="number">0</span>, <span class="number">1</span>&#125;,  t -&gt; <span class="keyword">new</span> <span class="title class_">int</span>[] &#123;t[<span class="number">1</span>], t[<span class="number">0</span>] + t[<span class="number">1</span>]&#125;)</span><br><span class="line">                .map(t -&gt; t[<span class="number">0</span>])</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>generate</strong></p>
+<p>和iterate方法类似，generate也生成一个无限流。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span>&lt;T&gt; <span class="type">Stream</span>&lt;T&gt; <span class="title function_">generate</span><span class="params">(Supplier&lt;? extends T&gt; s)</span></span><br></pre></td></tr></table></figure>
+
+<p>generate方法的参数是一个Supplier，它可以是无状态的，也可以是有状态的。</p>
+<p>无状态的Supplier，不会记录上一个状态，比如生成随机数，</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Stream.generate(Math::random)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+<p>有状态的Supplier还可以是有状态的，它会记录前一个Supplier的状态（可以是值，属性等），比如还是生成一个斐波那契数列，在构建每一个元素时，都改变了supplier的属性：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">IntSupplier</span> <span class="variable">supplier</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IntSupplier</span>() &#123;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">pre</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">private</span> <span class="type">int</span> <span class="variable">cur</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getAsInt</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldPre</span> <span class="operator">=</span> pre;</span><br><span class="line">                <span class="type">int</span> <span class="variable">oldCur</span> <span class="operator">=</span> cur;</span><br><span class="line">                <span class="built_in">this</span>.pre = cur;</span><br><span class="line">                <span class="built_in">this</span>.cur = oldPre + oldCur;</span><br><span class="line">                <span class="keyword">return</span> oldPre;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        IntStream.generate(supplier)</span><br><span class="line">                .limit(<span class="number">20</span>)</span><br><span class="line">                .forEach(Printer::println);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>Author: Ivan J. Lee<br>Date  : 2017-12-27 23:56</p>
+]]></content>
+      <tags>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
@@ -945,81 +945,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Kotlin中的数字类型的相等性</title>
-    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
-    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
-<ul>
-<li>结构型相等(&#x3D;&#x3D;)</li>
-<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
-</ul>
-<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
-<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
-<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
-<ul>
-<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
-<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
-<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
-</ul>
-<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
-<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
-<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
-<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
-<p><strong>1、数字类型始终和自身相等</strong></p>
-<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
-<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
-<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
-<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
-<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
-<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
-<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
-<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
-<p><strong>5、值相等的数字，满足结构型相等</strong></p>
-<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
-<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
-<ul>
-<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
-<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
-<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
-</ul>
-<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
-<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
-<ul>
-<li>认为 NaN 与其自身相等</li>
-<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
-<li>认为 -0.0 小于 0.0</li>
-</ul>
-<p>IEEE 754中对于浮点数比较的定义</p>
-<blockquote>
-<p> <strong>浮点数的比较</strong></p>
-<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
-<p> <strong>标准运算</strong></p>
-<p> 下述函数必须提供:</p>
-<p>……</p>
-<ul>
-<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
-<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
-</ul>
-</blockquote>
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Kotlin</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Kotlin 中的嵌套类和内部类</title>
     <url>/2026/10/24/002-kotlin-nested-class/</url>
     <content><![CDATA[<h1 id="Kotlin-中的嵌套类（Nested-Class）与内部类（Inner-Class）"><a href="#Kotlin-中的嵌套类（Nested-Class）与内部类（Inner-Class）" class="headerlink" title="Kotlin 中的嵌套类（Nested Class）与内部类（Inner Class）"></a>Kotlin 中的嵌套类（Nested Class）与内部类（Inner Class）</h1><p>在 Kotlin 中，定义在另一个类内部的类分为两种：</p>
@@ -1149,6 +1074,284 @@
       <categories>
         <category>Android</category>
       </categories>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin 空安全</title>
+    <url>/2026/10/27/002-kotlin-null-safety/</url>
+    <content><![CDATA[<h1 id="Kotlin-空安全（Null-Safety）详解"><a href="#Kotlin-空安全（Null-Safety）详解" class="headerlink" title="Kotlin 空安全（Null Safety）详解"></a>Kotlin 空安全（Null Safety）详解</h1><p>Kotlin 空安全的核心目标是：<strong>把空指针异常（NPE）从运行时尽可能提前到编译期</strong>。它通过类型系统区分「可空类型」和「非空类型」，强制开发者在编译期处理可能的 <code>null</code>。</p>
+<hr>
+<h2 id="一、核心概念：可空类型与非空类型"><a href="#一、核心概念：可空类型与非空类型" class="headerlink" title="一、核心概念：可空类型与非空类型"></a>一、核心概念：可空类型与非空类型</h2><p>Kotlin 中所有类型默认<strong>非空</strong>，不能赋值为 <code>null</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String = <span class="string">&quot;Alice&quot;</span></span><br><span class="line"><span class="comment">// name = null // 编译错误</span></span><br></pre></td></tr></table></figure>
+
+<p>需要允许 <code>null</code> 时，在类型后加 <code>?</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> name: String? = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">name = <span class="literal">null</span> <span class="comment">// 合法</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>关键区别</strong>：</p>
+<ul>
+<li><code>String</code>：非空，永远不会是 <code>null</code>，可直接调用成员。</li>
+<li><code>String?</code>：可空，可能是 <code>null</code>，调用成员前必须处理。</li>
+</ul>
+<hr>
+<h2 id="二、安全调用操作符"><a href="#二、安全调用操作符" class="headerlink" title="二、安全调用操作符 ?."></a>二、安全调用操作符 <code>?.</code></h2><p>如果接收者非空，调用方法&#x2F;属性；否则返回 <code>null</code>，不抛异常。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String? = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">println(name?.length) <span class="comment">// 5</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> nullName: String? = <span class="literal">null</span></span><br><span class="line">println(nullName?.length) <span class="comment">// null</span></span><br></pre></td></tr></table></figure>
+
+<p>链式调用：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> length = user?.address?.city?.length</span><br></pre></td></tr></table></figure>
+
+<p>任何一环为 <code>null</code>，整个表达式返回 <code>null</code>。</p>
+<hr>
+<h2 id="三、Elvis-操作符"><a href="#三、Elvis-操作符" class="headerlink" title="三、Elvis 操作符 ?:"></a>三、Elvis 操作符 <code>?:</code></h2><p>如果左侧为 <code>null</code>，返回右侧默认值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String? = <span class="literal">null</span></span><br><span class="line"><span class="keyword">val</span> display = name ?: <span class="string">&quot;Unknown&quot;</span> <span class="comment">// &quot;Unknown&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> length = name?.length ?: <span class="number">0</span> <span class="comment">// 0</span></span><br></pre></td></tr></table></figure>
+
+<p>可与 <code>return</code>、<code>throw</code> 结合：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">process</span><span class="params">(name: <span class="type">String</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n = name ?: <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">val</span> m = name ?: <span class="keyword">throw</span> IllegalArgumentException(<span class="string">&quot;name is null&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、非空断言"><a href="#四、非空断言" class="headerlink" title="四、非空断言 !!"></a>四、非空断言 <code>!!</code></h2><p>强制将可空类型转为非空，如果为 <code>null</code> 则抛 <code>NullPointerException</code>（准确说是 <code>KotlinNullPointerException</code>）。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String? = <span class="literal">null</span></span><br><span class="line"><span class="keyword">val</span> length = name!!.length <span class="comment">// 运行时抛 NPE</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>使用建议</strong>：</p>
+<ul>
+<li>仅在确定非空时使用，并加注释。</li>
+<li>尽量避免，优先用 <code>?.</code>、<code>?:</code>、<code>requireNotNull</code>。</li>
+</ul>
+<hr>
+<h2 id="五、安全转换-as"><a href="#五、安全转换-as" class="headerlink" title="五、安全转换 as?"></a>五、安全转换 <code>as?</code></h2><p>类型转换失败返回 <code>null</code>，而不是抛 <code>ClassCastException</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> obj: Any = <span class="string">&quot;hello&quot;</span></span><br><span class="line"><span class="keyword">val</span> str: String? = obj <span class="keyword">as</span>? String <span class="comment">// &quot;hello&quot;</span></span><br><span class="line"><span class="keyword">val</span> num: <span class="built_in">Int</span>? = obj <span class="keyword">as</span>? <span class="built_in">Int</span>       <span class="comment">// null</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、可空接收者扩展"><a href="#六、可空接收者扩展" class="headerlink" title="六、可空接收者扩展"></a>六、可空接收者扩展</h2><p>可以为可空类型定义扩展函数，内部处理 <code>null</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> String?.<span class="title">orEmpty</span><span class="params">()</span></span>: String = <span class="keyword">this</span> ?: <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> s: String? = <span class="literal">null</span></span><br><span class="line">println(s.orEmpty()) <span class="comment">// &quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>标准库常用：</p>
+<ul>
+<li><code>String?.orEmpty()</code></li>
+<li><code>Collection&lt;T&gt;?.orEmpty()</code></li>
+<li><code>T?.let { }</code></li>
+</ul>
+<hr>
+<h2 id="七、let、run、also、apply-处理可空"><a href="#七、let、run、also、apply-处理可空" class="headerlink" title="七、let、run、also、apply 处理可空"></a>七、<code>let</code>、<code>run</code>、<code>also</code>、<code>apply</code> 处理可空</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String? = <span class="string">&quot;Alice&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// let：非空时执行</span></span><br><span class="line">name?.let &#123; println(it.length) &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// run：非空时执行并返回结果</span></span><br><span class="line"><span class="keyword">val</span> length = name?.run &#123; <span class="keyword">this</span>.length &#125; ?: <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// also：非空时执行副作用</span></span><br><span class="line">name?.also &#123; println(<span class="string">&quot;name: <span class="variable">$it</span>&quot;</span>) &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>?.let</code> 是最常用的可空处理模式。</p>
+<hr>
+<h2 id="八、集合与可空元素"><a href="#八、集合与可空元素" class="headerlink" title="八、集合与可空元素"></a>八、集合与可空元素</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> list: List&lt;String?&gt; = listOf(<span class="string">&quot;a&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;b&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>List&lt;String?&gt;</code>：集合非空，元素可空。</li>
+<li><code>List&lt;String&gt;?</code>：集合可空，元素非空。</li>
+<li><code>List&lt;String?&gt;?</code>：集合和元素都可空。</li>
+</ul>
+<p>处理：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">list.filterNotNull() <span class="comment">// List&lt;String&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、平台类型-T-与-Java-互操作"><a href="#九、平台类型-T-与-Java-互操作" class="headerlink" title="九、平台类型 T! 与 Java 互操作"></a>九、平台类型 <code>T!</code> 与 Java 互操作</h2><p>Java 类型在 Kotlin 中默认是<strong>平台类型</strong> <code>T!</code>，可空性未知：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Java</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">String</span> <span class="title function_">getName</span><span class="params">()</span> &#123; </span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span>; </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name = javaObj.name <span class="comment">// String!</span></span><br><span class="line"><span class="keyword">val</span> length = name.length <span class="comment">// 编译通过，运行时可能 NPE</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>安全做法</strong>：</p>
+<ul>
+<li>对无注解的 Java API，用可空类型接收：<code>String?</code>。</li>
+<li>或用 <code>?.</code>、<code>?:</code>、<code>requireNotNull</code> 兜底。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> safeName: String? = javaObj.name</span><br><span class="line"><span class="keyword">val</span> length = safeName?.length ?: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十、lateinit-与-by-lazy"><a href="#十、lateinit-与-by-lazy" class="headerlink" title="十、lateinit 与 by lazy"></a>十、<code>lateinit</code> 与 <code>by lazy</code></h2><h3 id="lateinit"><a href="#lateinit" class="headerlink" title="lateinit"></a><code>lateinit</code></h3><p>用于非空 <code>var</code>，延迟初始化，不能用于基本类型和可空类型。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">lateinit</span> <span class="keyword">var</span> name: String</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">    name = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 访问未初始化抛 UninitializedPropertyAccessException</span></span><br></pre></td></tr></table></figure>
+
+<p>判断是否初始化：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (::name.isInitialized) &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="by-lazy"><a href="#by-lazy" class="headerlink" title="by lazy"></a><code>by lazy</code></h3><p>用于 <code>val</code>，首次访问时初始化，线程安全可配置。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name: String <span class="keyword">by</span> lazy &#123; <span class="string">&quot;Alice&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>lateinit</code></th>
+<th><code>by lazy</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用类型</td>
+<td>非空引用类型</td>
+<td>任意</td>
+</tr>
+<tr>
+<td>可变性</td>
+<td><code>var</code></td>
+<td><code>val</code></td>
+</tr>
+<tr>
+<td>初始化</td>
+<td>手动</td>
+<td>首次访问</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>否</td>
+<td>可配置</td>
+</tr>
+<tr>
+<td>可重置</td>
+<td>否</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十一、requireNotNull、checkNotNull"><a href="#十一、requireNotNull、checkNotNull" class="headerlink" title="十一、requireNotNull、checkNotNull"></a>十一、<code>requireNotNull</code>、<code>checkNotNull</code></h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">process</span><span class="params">(name: <span class="type">String</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n = requireNotNull(name) &#123; <span class="string">&quot;name is null&quot;</span> &#125; <span class="comment">// 抛 IllegalArgumentException</span></span><br><span class="line">    <span class="keyword">val</span> m = checkNotNull(name) &#123; <span class="string">&quot;name is null&quot;</span> &#125;   <span class="comment">// 抛 IllegalStateException</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>requireNotNull</code>：参数校验，抛 <code>IllegalArgumentException</code>。</li>
+<li><code>checkNotNull</code>：状态校验，抛 <code>IllegalStateException</code>。</li>
+</ul>
+<p>对比 <code>!!</code>：可自定义异常消息，更易排查。</p>
+<hr>
+<h2 id="十二、空安全与泛型"><a href="#十二、空安全与泛型" class="headerlink" title="十二、空安全与泛型"></a>十二、空安全与泛型</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> List<span class="type">&lt;T&gt;</span>.<span class="title">firstOrNull</span><span class="params">()</span></span>: T? = <span class="keyword">if</span> (isEmpty()) <span class="literal">null</span> <span class="keyword">else</span> <span class="keyword">this</span>[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>泛型 <code>T</code> 默认非空，<code>T?</code> 可空。注意：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">process</span><span class="params">(item: <span class="type">T</span>)</span></span> &#123; &#125;</span><br><span class="line">process&lt;String?&gt;(<span class="literal">null</span>) <span class="comment">// 合法，T 可以是可空类型</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十三、空安全与-when"><a href="#十三、空安全与-when" class="headerlink" title="十三、空安全与 when"></a>十三、空安全与 <code>when</code></h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">describe</span><span class="params">(name: <span class="type">String</span>?)</span></span>: String = <span class="keyword">when</span> (name) &#123;</span><br><span class="line">    <span class="literal">null</span> -&gt; <span class="string">&quot;no name&quot;</span></span><br><span class="line">    <span class="keyword">else</span> -&gt; <span class="string">&quot;name: <span class="variable">$name</span>&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>when</code> 对 <code>null</code> 分支可智能转换。</p>
+<hr>
+<h2 id="十四、智能转换（Smart-Cast）"><a href="#十四、智能转换（Smart-Cast）" class="headerlink" title="十四、智能转换（Smart Cast）"></a>十四、智能转换（Smart Cast）</h2><p>Kotlin 在确定非空后自动转换类型：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">process</span><span class="params">(name: <span class="type">String</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (name != <span class="literal">null</span>) &#123;</span><br><span class="line">        println(name.length) <span class="comment">// 智能转换为 String</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>支持：</p>
+<ul>
+<li><code>if (x != null)</code></li>
+<li><code>x?.let { }</code></li>
+<li><code>when (x) { is Type -&gt; }</code></li>
+<li><code>requireNotNull(x)</code></li>
+</ul>
+<p>不支持：</p>
+<ul>
+<li><code>var</code> 属性（可能被其他线程修改）。</li>
+<li>自定义 getter 属性。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> name: String? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">process</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (name != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// println(name.length) // 编译错误，var 属性不能智能转换</span></span><br><span class="line">            println(name?.length)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十五、空安全与反射"><a href="#十五、空安全与反射" class="headerlink" title="十五、空安全与反射"></a>十五、空安全与反射</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> kClass = String::<span class="keyword">class</span></span><br><span class="line"><span class="title class_">println</span>(kClass.isMarkedNullable) <span class="comment">// false</span></span><br><span class="line"><span class="keyword">val</span> nullableClass = String::<span class="keyword">class</span>.createType(nullable = <span class="literal">true</span>)</span><br><span class="line">println(nullableClass.isMarkedNullable) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十六、常见面试题与答案"><a href="#十六、常见面试题与答案" class="headerlink" title="十六、常见面试题与答案"></a>十六、常见面试题与答案</h2><p><strong>Q1：Kotlin 空安全是什么？</strong><br>A：通过类型系统区分可空和非空类型，强制编译期处理 <code>null</code>，减少运行时 NPE。</p>
+<p><strong>Q2：<code>String</code> 和 <code>String?</code> 区别？</strong><br>A：<code>String</code> 非空，不能赋 <code>null</code>；<code>String?</code> 可空，需安全处理。</p>
+<p><strong>Q3：<code>?.</code>、<code>?:</code>、<code>!!</code> 区别？</strong><br>A：<code>?.</code> 安全调用，<code>null</code> 返回 <code>null</code>；<code>?:</code> 提供默认值；<code>!!</code> 强制非空，<code>null</code> 抛 NPE。</p>
+<p><strong>Q4：<code>as?</code> 和 <code>as</code> 区别？</strong><br>A：<code>as?</code> 失败返回 <code>null</code>；<code>as</code> 失败抛 <code>ClassCastException</code>。</p>
+<p><strong>Q5：平台类型 <code>T!</code> 是什么？</strong><br>A：Java 类型在 Kotlin 中的表示，可空性未知，调用可能 NPE。</p>
+<p><strong>Q6：<code>lateinit</code> 和 <code>by lazy</code> 区别？</strong><br>A：<code>lateinit</code> 用于 <code>var</code>，手动初始化；<code>by lazy</code> 用于 <code>val</code>，首次访问初始化。</p>
+<p><strong>Q7：<code>!!</code> 和 <code>requireNotNull</code> 区别？</strong><br>A：<code>!!</code> 抛 NPE；<code>requireNotNull</code> 抛 <code>IllegalArgumentException</code>，可自定义消息。</p>
+<p><strong>Q8：Kotlin 能完全避免 NPE 吗？</strong><br>A：不能。平台类型、<code>!!</code>、Java 互操作、反射仍可能 NPE。</p>
+<p><strong>Q9：智能转换什么时候失效？</strong><br>A：<code>var</code> 属性、自定义 getter、跨线程修改时。</p>
+<p><strong>Q10：可空接收者扩展是什么？</strong><br>A：为可空类型定义扩展函数，如 <code>String?.orEmpty()</code>。</p>
+<p><strong>Q11：如何处理集合中的 null？</strong><br>A：用 <code>filterNotNull()</code>、<code>mapNotNull()</code>。</p>
+<p><strong>Q12：<code>let</code> 如何配合空安全？</strong><br>A：<code>name?.let { }</code>，非空时执行。</p>
+<p><strong>Q13：<code>when</code> 如何处理 null？</strong><br>A：<code>when (name) { null -&gt; ...; else -&gt; ... }</code>。</p>
+<p><strong>Q14：Kotlin 空安全和 Java 对比？</strong><br>A：Java 无编译期空检查，NPE 运行时才暴露；Kotlin 编译期强制处理。</p>
+<p><strong>Q15：<code>checkNotNull</code> 和 <code>requireNotNull</code> 区别？</strong><br>A：<code>requireNotNull</code> 抛 <code>IllegalArgumentException</code>（参数校验）；<code>checkNotNull</code> 抛 <code>IllegalStateException</code>（状态校验）。</p>
+<hr>
+<h2 id="十七、完整示例"><a href="#十七、完整示例" class="headerlink" title="十七、完整示例"></a>十七、完整示例</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">User</span>(<span class="keyword">val</span> name: String?, <span class="keyword">val</span> address: Address?)</span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Address</span>(<span class="keyword">val</span> city: String?)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = User(<span class="string">&quot;Alice&quot;</span>, <span class="literal">null</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 安全调用链</span></span><br><span class="line">    <span class="keyword">val</span> city = user.address?.city</span><br><span class="line">    println(city) <span class="comment">// null</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Elvis 默认值</span></span><br><span class="line">    <span class="keyword">val</span> cityName = user.address?.city ?: <span class="string">&quot;Unknown&quot;</span></span><br><span class="line">    println(cityName) <span class="comment">// Unknown</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// let 处理非空</span></span><br><span class="line">    user.name?.let &#123; println(<span class="string">&quot;name: <span class="variable">$it</span>&quot;</span>) &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 安全转换</span></span><br><span class="line">    <span class="keyword">val</span> obj: Any = <span class="string">&quot;hello&quot;</span></span><br><span class="line">    <span class="keyword">val</span> str: String? = obj <span class="keyword">as</span>? String</span><br><span class="line"></span><br><span class="line">    <span class="comment">// requireNotNull</span></span><br><span class="line">    <span class="keyword">val</span> name = requireNotNull(user.name) &#123; <span class="string">&quot;name required&quot;</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十八、总结"><a href="#十八、总结" class="headerlink" title="十八、总结"></a>十八、总结</h2><ul>
+<li>Kotlin 通过 <code>?</code> 区分可空&#x2F;非空类型，编译期强制处理 <code>null</code>。</li>
+<li><code>?.</code> 安全调用、<code>?:</code> 默认值、<code>!!</code> 强制非空、<code>as?</code> 安全转换。</li>
+<li>平台类型 <code>T!</code> 是 Java 互操作的 NPE 风险点。</li>
+<li><code>lateinit</code> 用于 <code>var</code> 延迟初始化，<code>by lazy</code> 用于 <code>val</code> 首次访问初始化。</li>
+<li>智能转换在 <code>var</code> 属性、自定义 getter 时失效。</li>
+<li>可空接收者扩展、<code>let</code>、<code>filterNotNull</code> 是常用处理手段。</li>
+<li>面试高频：<code>?.</code>&#x2F;<code>?:</code>&#x2F;<code>!!</code> 区别、平台类型、智能转换、<code>lateinit</code> vs <code>lazy</code>。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Kotlin</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin中的数字类型的相等性</title>
+    <url>/2019/02/27/002-kotlin-numbers-equality/</url>
+    <content><![CDATA[<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><h3 id="相等性分类"><a href="#相等性分类" class="headerlink" title="相等性分类"></a>相等性分类</h3><p>Kotlin中有2种相等性  </p>
+<ul>
+<li>结构型相等(&#x3D;&#x3D;)</li>
+<li>引用型相等(&#x3D;&#x3D;&#x3D;)</li>
+</ul>
+<p>可以理解为结构型相等是值比较，和Java中的equals类似，引用型相等是通过比较引用指向的对象是否为同一个，和Java中的&#x3D;&#x3D;类似。</p>
+<p>Kotlin中，结构性相等使用双等号&#x3D;&#x3D;来表示（否定形式是!&#x3D;），引用型相等使用恒等号&#x3D;&#x3D;&#x3D;表示（否定形式是!&#x3D;&#x3D;）。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">(other: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span></span><br></pre></td></tr></table></figure>
+<p>kotlin中，Any类重载了&#x3D;&#x3D;操作符， 但是a&#x3D;&#x3D;b却不完全等价于a.equlas(b)。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">equals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> n : <span class="built_in">Int</span> = <span class="number">123</span></span><br><span class="line">    <span class="keyword">val</span> m : <span class="built_in">Int</span> = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">    n.equals(m)</span><br><span class="line">    m == n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> p: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> q: <span class="built_in">Int</span>? = <span class="number">3</span></span><br><span class="line">    <span class="keyword">val</span> s = <span class="string">&quot;123&quot;</span></span><br><span class="line">    </span><br><span class="line">    p == q</span><br><span class="line">    p == n</span><br><span class="line">    p == s   <span class="comment">//Operator &#x27;==&#x27; cannot be applied to &#x27;Int?&#x27; and &#x27;String&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">void</span> <span class="title function_">equals</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">      <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Integer.valueOf(n).equals(Integer.valueOf(m));</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">p</span> <span class="operator">=</span> (Integer)<span class="literal">null</span>;</span><br><span class="line">      <span class="type">Integer</span> <span class="variable">q</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line">      Intrinsics.areEqual(p, q);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据变量类型不同，&#x3D;&#x3D;会被编译成不同类型</p>
+<ul>
+<li>变量为非空类型，a&#x3D;&#x3D;b被编译成a.equals(b)</li>
+<li>变量未可空类型，a&#x3D;&#x3D;b被编译成Intrinsics.areEqual(p, q)</li>
+<li>&#x3D;&#x3D;两侧类型不同，编译失败</li>
+</ul>
+<p>其中Intrinscs.areEquals(Object, Object)中对参数都进行了判空，所以在kotlin中，只要能编译通过，请放心大胆的使用&#x3D;&#x3D;，不用担心空指针的问题。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> static boolean areEqual(Object first, Object second) &#123;</span><br><span class="line">       <span class="keyword">return</span> first == <span class="literal">null</span> ? second == <span class="literal">null</span> : first.equals(second);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数字类型的相等性"><a href="#数字类型的相等性" class="headerlink" title="数字类型的相等性"></a>数字类型的相等性</h3><p>在Kotlin中，数字“基本类型”一共有6种，分别是Byte、Short、Int、Long、Float、Double，这6种类型都继承自Number类。</p>
+<p>从形式上看，这6种类型和Java中的包装数字类型相同，但是他们和Java中的数字类型不完全等价。</p>
+<p>kotlin中，被声明成可空类型(Int?等)的数字变量在JVM中会被表示成包装类型数字，被声明成非空类型的数字在JVM中可以被表示基本类型数字。</p>
+<h4 id="整数的相等性"><a href="#整数的相等性" class="headerlink" title="整数的相等性"></a>整数的相等性</h4><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">primitive</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> a: <span class="built_in">Int</span> = <span class="number">128</span></span><br><span class="line">    println(a == a) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> primitiveA: <span class="built_in">Int</span> = a</span><br><span class="line">    println(a === primitiveA) <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> boxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    <span class="keyword">val</span> anotherBoxedA: <span class="built_in">Int</span>? = a</span><br><span class="line">    println(boxedA === primitiveA)<span class="comment">// 3</span></span><br><span class="line">    println(boxedA === anotherBoxedA)<span class="comment">// 4</span></span><br><span class="line">    println(boxedA == primitiveA)<span class="comment">// 5</span></span><br><span class="line">    println(boxedA == anotherBoxedA)<span class="comment">//6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，注释1～5中的打印结果分别对应：</p>
+<p><strong>1、数字类型始终和自身相等</strong></p>
+<p>a为非空变量，所以a为基本类型，无论是a&#x3D;&#x3D;a，还是a&#x3D;&#x3D;&#x3D;a都是true.</p>
+<p><strong>2、基本类型整数，值相等即满足结构型相等和引用型相等</strong></p>
+<p>a和primitiveA都是非空变量，都被存储为基本类型，只要它们的值相等，无论是&#x3D;&#x3D;还是&#x3D;&#x3D;&#x3D;，比较的结果都是true.</p>
+<p><strong>3、装箱类型，即便是值相等，只要类型不同，则不满足引用型相等</strong></p>
+<p>由于被声明成了可空变量，boxedA被存储为装箱类型，primitiveA是非空变量，被存储为基本类型，装箱类型和基本类型相比，类型不同，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; primitiveA为false.</p>
+<p><strong>4、装箱类型，即使值相等，只要引用不指向同一个对象，不满足引用型相等</strong></p>
+<p>boxedA和anotherBoxedA都是可空变量，都被存储为装箱类型，值都是128，赋值操作会创建出不同的Int对象，所以不满足引用型相等，boxedA &#x3D;&#x3D;&#x3D; anotherBoxedA值为false.</p>
+<p>Kotlin在处理整数的时候，和Java中的Integer一样，0到127都有缓存池，数值小于128时，取到的是同一个对象，大于127则会创建新的对象。所以在上述代码块中，a的值是128，创建了不同的对象，使用&#x3D;&#x3D;&#x3D;比较，值为false. 将上述代码中a的值改成126，取到的都是缓存池中的对象，因此，即使使用&#x3D;&#x3D;&#x3D;比较，值也是true.</p>
+<p><strong>5、值相等的数字，满足结构型相等</strong></p>
+<p>在注释5和6中，primitiveA，boxedA，anotherBoxedA值都是128，primitiveA是基本类型，boxedA和anotherBoxedA是装箱类型，使用&#x3D;&#x3D;比较，只比较它们的值，都相等，都满足结构型相等。</p>
+<h4 id="浮点数的相等性"><a href="#浮点数的相等性" class="headerlink" title="浮点数的相等性"></a>浮点数的相等性</h4><p>对于浮点数的比较</p>
+<ul>
+<li>相等性检测：a &#x3D;&#x3D; b 与 a !&#x3D; b</li>
+<li>比较操作符：a &lt; b、 a &gt; b、 a &lt;&#x3D; b、 a &gt;&#x3D; b</li>
+<li>区间实例以及区间检测：a..b、 x in a..b、 x !in a..b</li>
+</ul>
+<p>当其中的操作数 a 与 b 都是明确的（可空或非空的）Float 或 Double 类型时，该检测遵循 IEEE 754 浮点数运算标准。</p>
+<p>否则会使用不符合该标准的结构相等性检测，这会导致 NaN 等于其自身，而 -0.0 不等于 0.0。<br>然而，为了支持泛型场景并提供全序支持，当这些操作数并非静态类型为浮点数（例如是 Any、 Comparable&lt;……&gt;、 类型参数）时，这些操作使用为 Float 与 Double 实现的不符合标准的 equals 与 compareTo，这会出现：</p>
+<ul>
+<li>认为 NaN 与其自身相等</li>
+<li>认为 NaN 比包括正无穷大（POSITIVE_INFINITY）在内的任何其他元素都大</li>
+<li>认为 -0.0 小于 0.0</li>
+</ul>
+<p>IEEE 754中对于浮点数比较的定义</p>
+<blockquote>
+<p> <strong>浮点数的比较</strong></p>
+<p>浮点数基本上可以按照符号位、指数域、尾数域的顺序作字典比较。显然，所有正数大于负数；正负号相同时，指数的二进制表示法更大的其浮点数值更大。</p>
+<p> <strong>标准运算</strong></p>
+<p> 下述函数必须提供:</p>
+<p>……</p>
+<ul>
+<li>比较运算. -Inf &lt;负的规约浮点数数&lt;负的非规约浮点数&lt; -0.0 &#x3D; 0.0 &lt;正的非规约浮点数&lt;正的规约浮点数&lt; Inf；</li>
+<li>特殊比较： -Inf &#x3D; -Inf, Inf &#x3D; Inf, NaN与任何浮点数（包括自身）的比较结果都为假，即 (NaN ≠ x) &#x3D; false.</li>
+</ul>
+</blockquote>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">stdFloatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// standard</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN == <span class="built_in">Float</span>.NaN) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.POSITIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &lt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line">    println(<span class="built_in">Float</span>.NaN &gt; <span class="built_in">Float</span>.NEGATIVE_INFINITY) <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">    println(-<span class="number">0.0</span> == <span class="number">0.0</span>) <span class="comment">//true</span></span><br><span class="line">    println(-<span class="number">0.0</span> &lt; <span class="number">0.0</span>)  <span class="comment">//false</span></span><br><span class="line">    <span class="keyword">val</span> f0 : <span class="built_in">Float</span> = <span class="built_in">Float</span>.NaN</span><br><span class="line">    println(f0 == f0) <span class="comment">//false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">floatNumbers</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f1 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f2 : Comparable&lt;<span class="built_in">Float</span>&gt; = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f3 : Any = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f4 : Any? = <span class="built_in">Float</span>.NaN</span><br><span class="line">    <span class="keyword">val</span> f5 : Comparable&lt;<span class="built_in">Double</span>&gt; = -<span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> f6 : Comparable&lt;<span class="built_in">Double</span>&gt; = <span class="number">0.0</span></span><br><span class="line">    <span class="keyword">val</span> pInf = <span class="built_in">Float</span>.POSITIVE_INFINITY</span><br><span class="line"></span><br><span class="line">    <span class="comment">// NaN not equals NaN</span></span><br><span class="line">    println(f1 == f1) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f2) <span class="comment">//true</span></span><br><span class="line">    println(f1 == f3) <span class="comment">//true</span></span><br><span class="line">    println(f3 == f4) <span class="comment">//true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// -0.0 not equals 0.0</span></span><br><span class="line">    println(f5 == f6) <span class="comment">//fasle</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+]]></content>
       <tags>
         <tag>Kotlin</tag>
       </tags>
@@ -1346,7 +1549,7 @@
     <content><![CDATA[<p><em>本文出处<a href="https://zhuanlan.zhihu.com/p/25415162">https://zhuanlan.zhihu.com/p/25415162</a> 或者 <a href="http://blog.csdn.net/u013301192/article/details/69568557">http://blog.csdn.net/u013301192/article/details/69568557</a></em></p>
 <p>Git作为一种常用的现代版本管理工具，应用的十分广泛，作为开发者，Git是一项必不可少的技能，掌握常见的Git命令能够大大提高我们的工作效率。</p>
 <p>这里只介绍最基础的，最常用的命令，配置相关的东西直接略过，git相关的一些概念也不介绍了。在执行下面的命令的时候，假定你已经安装好了git，并且在你的远程git仓库的网站上添加了你的key，建立了安全的连接。以下所有的命令基于Mac OS X 10.12，Git版本2.10.1 (Apple Git-78)。</p>
-<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#x69;&#116;&#64;&#103;&#105;&#x74;&#104;&#117;&#98;&#46;&#99;&#x6f;&#109;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><h4 id="下载项目"><a href="#下载项目" class="headerlink" title="下载项目"></a>下载项目</h4><p>拿到项目的git地址，比如这个<a href="mailto:&#103;&#105;&#116;&#64;&#x67;&#x69;&#x74;&#104;&#117;&#x62;&#46;&#x63;&#x6f;&#x6d;">git@github.com</a>:IvanJLee&#x2F;git.git，新建一个文件夹，把代码下载下来：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir LearningGit</span><br><span class="line">cd LearningGit</span><br><span class="line">git clone git@github.com:IvanJLee/git.git</span><br></pre></td></tr></table></figure>
 
 <p>等待代码下载完成，LearningGit目录下，多出了一个git文件夹，这个文件夹中就是上面那个仓库的所有文件了。进入git文件夹，查看所有文件，会发现有一个.git文件夹，这就是Git的版本库了。</p>
@@ -1688,6 +1891,547 @@ Layout</center>
       </categories>
       <tags>
         <tag>Android</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kotlin 中的集合</title>
+    <url>/2026/11/12/002-kotlin-collection/</url>
+    <content><![CDATA[<p>Kotlin 集合是面试高频模块，核心知识点包括：<strong>只读与可变、集合层次结构、与 Java 集合的关系、常用操作符、Sequence 惰性求值、性能与线程安全</strong>。</p>
+<hr>
+<h2 id="一、集合层次结构"><a href="#一、集合层次结构" class="headerlink" title="一、集合层次结构"></a>一、集合层次结构</h2><p>Kotlin 集合分两大类：<strong>只读集合</strong>和<strong>可变集合</strong>。</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Iterable</span><br><span class="line">├── Collection</span><br><span class="line">│   ├── List</span><br><span class="line">│   │   └── MutableList</span><br><span class="line">│   └── Set</span><br><span class="line">│       └── MutableSet</span><br><span class="line">└── Map（独立，不继承 Collection）</span><br><span class="line">    └── MutableMap</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点</strong>：</p>
+<ul>
+<li><code>List</code>、<code>Set</code>、<code>Map</code> 是<strong>只读接口</strong>，只有读方法。</li>
+<li><code>MutableList</code>、<code>MutableSet</code>、<code>MutableMap</code> 继承只读接口，增加写方法。</li>
+<li>只读<strong>不等于不可变</strong>：底层可能被 Java 代码修改，只是 Kotlin 编译器不允许你直接写。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> list: List&lt;<span class="built_in">Int</span>&gt; = mutableListOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="comment">// list.add(4) // 编译错误</span></span><br><span class="line">(list <span class="keyword">as</span> MutableList).add(<span class="number">4</span>) <span class="comment">// 运行时可绕过，但不推荐</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、创建集合"><a href="#二、创建集合" class="headerlink" title="二、创建集合"></a>二、创建集合</h2><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>listOf</code></td>
+<td><code>listOf(1, 2, 3)</code></td>
+<td>只读 List</td>
+</tr>
+<tr>
+<td><code>mutableListOf</code></td>
+<td><code>mutableListOf(1, 2, 3)</code></td>
+<td>可变 List</td>
+</tr>
+<tr>
+<td><code>setOf</code></td>
+<td><code>setOf(1, 2, 3)</code></td>
+<td>只读 Set</td>
+</tr>
+<tr>
+<td><code>mutableSetOf</code></td>
+<td><code>mutableSetOf(1, 2)</code></td>
+<td>可变 Set</td>
+</tr>
+<tr>
+<td><code>mapOf</code></td>
+<td><code>mapOf(&quot;a&quot; to 1)</code></td>
+<td>只读 Map</td>
+</tr>
+<tr>
+<td><code>mutableMapOf</code></td>
+<td><code>mutableMapOf(&quot;a&quot; to 1)</code></td>
+<td>可变 Map</td>
+</tr>
+<tr>
+<td><code>arrayListOf</code></td>
+<td><code>arrayListOf(1, 2)</code></td>
+<td>可变 ArrayList</td>
+</tr>
+<tr>
+<td><code>hashSetOf</code></td>
+<td><code>hashSetOf(1, 2)</code></td>
+<td>可变 HashSet</td>
+</tr>
+<tr>
+<td><code>hashMapOf</code></td>
+<td><code>hashMapOf(&quot;a&quot; to 1)</code></td>
+<td>可变 HashMap</td>
+</tr>
+<tr>
+<td><code>emptyList()</code></td>
+<td><code>emptyList&lt;Int&gt;()</code></td>
+<td>空只读 List</td>
+</tr>
+<tr>
+<td><code>listOfNotNull</code></td>
+<td><code>listOfNotNull(a, b)</code></td>
+<td>过滤 null</td>
+</tr>
+</tbody></table>
+<p><strong>加分点</strong>：</p>
+<ul>
+<li><code>listOf()</code> 返回 <code>ArraysUtilJVM$ArrayList</code> 或 <code>SingletonList</code>，不可变。</li>
+<li><code>mutableListOf()</code> 返回 <code>ArrayList</code>。</li>
+<li><code>mapOf()</code> 返回 <code>LinkedHashMap</code>。</li>
+</ul>
+<hr>
+<h2 id="三、只读-vs-可变"><a href="#三、只读-vs-可变" class="headerlink" title="三、只读 vs 可变"></a>三、只读 vs 可变</h2><table>
+<thead>
+<tr>
+<th>操作</th>
+<th><code>List</code></th>
+<th><code>MutableList</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读取</td>
+<td><code>get</code>、<code>size</code>、<code>forEach</code></td>
+<td>同左</td>
+</tr>
+<tr>
+<td>添加</td>
+<td>❌</td>
+<td><code>add</code>、<code>addAll</code></td>
+</tr>
+<tr>
+<td>删除</td>
+<td>❌</td>
+<td><code>remove</code>、<code>clear</code></td>
+</tr>
+<tr>
+<td>修改</td>
+<td>❌</td>
+<td><code>set</code></td>
+</tr>
+<tr>
+<td>迭代</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p>只读集合真的不可变吗？  </p>
+<p>不。Kotlin 只读接口只是编译期限制，底层可能是可变集合，Java 代码可修改。需要真正不可变用 <code>Collections.unmodifiableList</code> 或第三方库（如 Guava ImmutableList）。</p>
+<hr>
+<h2 id="四、集合与-Java-的关系"><a href="#四、集合与-Java-的关系" class="headerlink" title="四、集合与 Java 的关系"></a>四、集合与 Java 的关系</h2><p>Kotlin 集合编译后映射为 Java 集合：</p>
+<table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>List</code></td>
+<td><code>java.util.List</code></td>
+</tr>
+<tr>
+<td><code>MutableList</code></td>
+<td><code>java.util.List</code></td>
+</tr>
+<tr>
+<td><code>Set</code></td>
+<td><code>java.util.Set</code></td>
+</tr>
+<tr>
+<td><code>Map</code></td>
+<td><code>java.util.Map</code></td>
+</tr>
+<tr>
+<td><code>Collection</code></td>
+<td><code>java.util.Collection</code></td>
+</tr>
+</tbody></table>
+<p><strong>关键点</strong>：</p>
+<ul>
+<li>Kotlin 只读集合和可变集合编译后都是 Java 可变接口，区别只在编译期。</li>
+<li>Java 调用 Kotlin 返回的 <code>List</code> 时，可以修改，Kotlin 不保证不可变。</li>
+<li>Java 的 <code>List</code> 在 Kotlin 中视为平台类型 <code>(Mutable)List&lt;T!&gt;!</code>，可读可写。</li>
+</ul>
+<hr>
+<h2 id="五、常用操作符"><a href="#五、常用操作符" class="headerlink" title="五、常用操作符"></a>五、常用操作符</h2><h3 id="1-转换"><a href="#1-转换" class="headerlink" title="1. 转换"></a>1. 转换</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>map</code></td>
+<td>元素转换</td>
+<td><code>list.map { it * 2 }</code></td>
+</tr>
+<tr>
+<td><code>flatMap</code></td>
+<td>转换并展平</td>
+<td><code>list.flatMap { listOf(it, it) }</code></td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>过滤</td>
+<td><code>list.filter { it &gt; 0 }</code></td>
+</tr>
+<tr>
+<td><code>filterNot</code></td>
+<td>反向过滤</td>
+<td><code>list.filterNot { it &gt; 0 }</code></td>
+</tr>
+<tr>
+<td><code>mapNotNull</code></td>
+<td>转换并过滤 null</td>
+<td><code>list.mapNotNull { it.toIntOrNull() }</code></td>
+</tr>
+<tr>
+<td><code>flatten</code></td>
+<td>展平嵌套集合</td>
+<td><code>listOf(listOf(1), listOf(2)).flatten()</code></td>
+</tr>
+<tr>
+<td><code>zip</code></td>
+<td>合并两个集合</td>
+<td><code>listA.zip(listB) { a, b -&gt; a + b }</code></td>
+</tr>
+<tr>
+<td><code>unzip</code></td>
+<td>拆分 Pair 集合</td>
+<td><code>pairs.unzip()</code></td>
+</tr>
+</tbody></table>
+<h3 id="2-聚合"><a href="#2-聚合" class="headerlink" title="2. 聚合"></a>2. 聚合</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fold</code></td>
+<td>带初始值累积</td>
+<td><code>list.fold(0) { acc, i -&gt; acc + i }</code></td>
+</tr>
+<tr>
+<td><code>reduce</code></td>
+<td>无初始值累积</td>
+<td>空集合抛异常</td>
+</tr>
+<tr>
+<td><code>sum</code></td>
+<td>求和</td>
+<td>数字集合</td>
+</tr>
+<tr>
+<td><code>average</code></td>
+<td>平均值</td>
+<td>数字集合</td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>计数</td>
+<td>可带条件</td>
+</tr>
+<tr>
+<td><code>maxOrNull</code> &#x2F; <code>minOrNull</code></td>
+<td>最大&#x2F;最小</td>
+<td>空集合返回 null</td>
+</tr>
+<tr>
+<td><code>maxByOrNull</code> &#x2F; <code>minByOrNull</code></td>
+<td>按条件最大&#x2F;最小</td>
+<td>空集合返回 null</td>
+</tr>
+</tbody></table>
+<h3 id="3-排序"><a href="#3-排序" class="headerlink" title="3. 排序"></a>3. 排序</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sorted</code></td>
+<td>自然排序</td>
+</tr>
+<tr>
+<td><code>sortedBy</code></td>
+<td>按选择器排序</td>
+</tr>
+<tr>
+<td><code>sortedDescending</code></td>
+<td>降序</td>
+</tr>
+<tr>
+<td><code>sortedByDescending</code></td>
+<td>按选择器降序</td>
+</tr>
+<tr>
+<td><code>sortedWith</code></td>
+<td>自定义 Comparator</td>
+</tr>
+</tbody></table>
+<h3 id="4-分组与关联"><a href="#4-分组与关联" class="headerlink" title="4. 分组与关联"></a>4. 分组与关联</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>返回</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>groupBy</code></td>
+<td>按 key 分组</td>
+<td><code>Map&lt;K, List&lt;T&gt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>associate</code></td>
+<td>自定义键值对</td>
+<td><code>Map&lt;K, V&gt;</code></td>
+</tr>
+<tr>
+<td><code>associateBy</code></td>
+<td>指定 key，value 是元素</td>
+<td><code>Map&lt;K, T&gt;</code></td>
+</tr>
+<tr>
+<td><code>associateWith</code></td>
+<td>指定 value，key 是元素</td>
+<td><code>Map&lt;T, V&gt;</code></td>
+</tr>
+<tr>
+<td><code>partition</code></td>
+<td>按条件分两组</td>
+<td><code>Pair&lt;List&lt;T&gt;, List&lt;T&gt;&gt;</code></td>
+</tr>
+</tbody></table>
+<h3 id="5-查找与判断"><a href="#5-查找与判断" class="headerlink" title="5. 查找与判断"></a>5. 查找与判断</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>find</code> &#x2F; <code>firstOrNull</code></td>
+<td>找第一个匹配</td>
+</tr>
+<tr>
+<td><code>any</code></td>
+<td>是否有匹配</td>
+</tr>
+<tr>
+<td><code>all</code></td>
+<td>是否全部匹配</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>是否无匹配</td>
+</tr>
+<tr>
+<td><code>contains</code></td>
+<td>是否包含</td>
+</tr>
+<tr>
+<td><code>isEmpty</code> &#x2F; <code>isNotEmpty</code></td>
+<td>是否为空</td>
+</tr>
+</tbody></table>
+<h3 id="6-取子集"><a href="#6-取子集" class="headerlink" title="6. 取子集"></a>6. 取子集</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>take(n)</code></td>
+<td>取前 n 个</td>
+</tr>
+<tr>
+<td><code>takeLast(n)</code></td>
+<td>取后 n 个</td>
+</tr>
+<tr>
+<td><code>drop(n)</code></td>
+<td>去掉前 n 个</td>
+</tr>
+<tr>
+<td><code>dropLast(n)</code></td>
+<td>去掉后 n 个</td>
+</tr>
+<tr>
+<td><code>slice(range)</code></td>
+<td>取指定范围</td>
+</tr>
+<tr>
+<td><code>distinct</code></td>
+<td>去重</td>
+</tr>
+<tr>
+<td><code>distinctBy</code></td>
+<td>按选择器去重</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、Sequence-惰性求值"><a href="#六、Sequence-惰性求值" class="headerlink" title="六、Sequence 惰性求值"></a>六、Sequence 惰性求值</h2><h3 id="1-区别"><a href="#1-区别" class="headerlink" title="1. 区别"></a>1. 区别</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>Iterable</code></th>
+<th><code>Sequence</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>求值</td>
+<td>立即求值</td>
+<td>惰性求值</td>
+</tr>
+<tr>
+<td>中间操作</td>
+<td>生成新集合</td>
+<td>返回新 Sequence</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>每步生成中间集合</td>
+<td>无中间集合</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>小数据量快</td>
+<td>大数据量、链式多时快</td>
+</tr>
+<tr>
+<td>终端操作</td>
+<td>无</td>
+<td><code>toList</code>、<code>first</code>、<code>count</code> 触发执行</td>
+</tr>
+</tbody></table>
+<h3 id="2-示例"><a href="#2-示例" class="headerlink" title="2. 示例"></a>2. 示例</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Iterable：每步生成新集合</span></span><br><span class="line"><span class="keyword">val</span> result = (<span class="number">1.</span><span class="number">.1_000_000</span>)</span><br><span class="line">    .map &#123; it * <span class="number">2</span> &#125;       <span class="comment">// 生成 100 万列表</span></span><br><span class="line">    .filter &#123; it % <span class="number">3</span> == <span class="number">0</span> &#125; <span class="comment">// 再生成列表</span></span><br><span class="line">    .take(<span class="number">10</span>)             <span class="comment">// 再生成列表</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Sequence：惰性，只计算前 10 个</span></span><br><span class="line"><span class="keyword">val</span> result = (<span class="number">1.</span><span class="number">.1_000_000</span>).asSequence()</span><br><span class="line">    .map &#123; it * <span class="number">2</span> &#125;</span><br><span class="line">    .filter &#123; it % <span class="number">3</span> == <span class="number">0</span> &#125;</span><br><span class="line">    .take(<span class="number">10</span>)</span><br><span class="line">    .toList()             <span class="comment">// 终端操作，触发执行</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-什么时候用-Sequence"><a href="#3-什么时候用-Sequence" class="headerlink" title="3. 什么时候用 Sequence"></a>3. 什么时候用 Sequence</h3><ul>
+<li>大数据量（十万以上）。</li>
+<li>链式操作多。</li>
+<li>只需部分结果（<code>take</code>、<code>first</code>）。</li>
+<li>避免中间集合内存开销。</li>
+</ul>
+<p><strong>加分点</strong>：Sequence 也有开销，小数据量可能比 Iterable 慢；<code>sequence { }</code> 构建器用 <code>yield</code> 发射元素。</p>
+<hr>
+<h2 id="七、集合与数组"><a href="#七、集合与数组" class="headerlink" title="七、集合与数组"></a>七、集合与数组</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>数组</th>
+<th>集合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>长度</td>
+<td>固定</td>
+<td>可变（Mutable）</td>
+</tr>
+<tr>
+<td>元素类型</td>
+<td>基本类型有专用数组（<code>IntArray</code>）</td>
+<td>泛型</td>
+</tr>
+<tr>
+<td>协变</td>
+<td>数组协变（有风险）</td>
+<td>只读集合协变</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>更高</td>
+<td>略低</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>底层、性能敏感</td>
+<td>业务逻辑</td>
+</tr>
+</tbody></table>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> array = intArrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> list = listOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">array[<span class="number">0</span>] = <span class="number">10</span>  <span class="comment">// 可变</span></span><br><span class="line"><span class="comment">// list[0] = 10 // 编译错误</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、集合与线程安全"><a href="#八、集合与线程安全" class="headerlink" title="八、集合与线程安全"></a>八、集合与线程安全</h2><ul>
+<li>Kotlin 标准集合<strong>非线程安全</strong>。</li>
+<li>多线程场景用：<ul>
+<li><code>java.util.concurrent.ConcurrentHashMap</code></li>
+<li><code>CopyOnWriteArrayList</code></li>
+<li><code>Collections.synchronizedList</code></li>
+</ul>
+</li>
+<li>协程中用 <code>Mutex</code> 保护共享集合，或用 <code>Channel</code>、<code>Flow</code> 传递数据。</li>
+</ul>
+<hr>
+<h2 id="九、常见面试题与答案"><a href="#九、常见面试题与答案" class="headerlink" title="九、常见面试题与答案"></a>九、常见面试题与答案</h2><p><strong>Q1：Kotlin 只读集合真的不可变吗？</strong><br>A：不。只读只是编译期接口限制，底层可能是可变集合，Java 可修改。真正不可变用 <code>Collections.unmodifiableList</code> 或 Guava。</p>
+<p><strong>Q2：<code>List</code> 和 <code>MutableList</code> 编译后有什么区别？</strong><br>A：都映射为 Java <code>List</code>，区别只在编译期。Java 调用 Kotlin 返回的 <code>List</code> 仍可修改。</p>
+<p><strong>Q3：<code>listOf</code> 和 <code>mutableListOf</code> 区别？</strong><br>A：<code>listOf</code> 返回只读接口，<code>mutableListOf</code> 返回可变 <code>ArrayList</code>。</p>
+<p><strong>Q4：<code>Sequence</code> 和 <code>Iterable</code> 区别？</strong><br>A：<code>Iterable</code> 立即求值生成中间集合；<code>Sequence</code> 惰性逐元素，无中间集合，适合大数据量。</p>
+<p><strong>Q5：<code>fold</code> 和 <code>reduce</code> 区别？</strong><br>A：<code>fold</code> 有初始值；<code>reduce</code> 无初始值，空集合抛异常。</p>
+<p><strong>Q6：<code>associate</code> 和 <code>associateBy</code> 区别？</strong><br>A：<code>associate</code> 自定义键值对；<code>associateBy</code> 指定 key，value 是元素本身。</p>
+<p><strong>Q7：<code>map</code> 和 <code>flatMap</code> 区别？</strong><br>A：<code>map</code> 一对一转换；<code>flatMap</code> 转换后展平。</p>
+<p><strong>Q8：<code>groupBy</code> 返回什么？</strong><br>A：<code>Map&lt;K, List&lt;T&gt;&gt;</code>，按 key 分组。</p>
+<p><strong>Q9：Kotlin 集合和 Java 集合如何互操作？</strong><br>A：Kotlin 只读&#x2F;可变集合编译后都是 Java 集合接口；Java 的 <code>List</code> 在 Kotlin 中是平台类型，可读可写。</p>
+<p><strong>Q10：如何选择 <code>List</code>、<code>Set</code>、<code>Map</code>？</strong><br>A：有序可重复用 <code>List</code>；去重用 <code>Set</code>；键值对用 <code>Map</code>。只读优先，需要修改用 <code>Mutable</code>。</p>
+<p><strong>Q11：<code>take</code> 和 <code>drop</code> 区别？</strong><br>A：<code>take(n)</code> 取前 n 个；<code>drop(n)</code> 去掉前 n 个。</p>
+<p><strong>Q12：<code>distinct</code> 和 <code>distinctBy</code> 区别？</strong><br>A：<code>distinct</code> 按元素去重；<code>distinctBy</code> 按选择器结果去重。</p>
+<p><strong>Q13：Kotlin 集合为什么分只读和可变？</strong><br>A：编译期表达意图，减少误修改；与 Java 互操作时只读接口更安全。</p>
+<p><strong>Q14：<code>Array</code> 和 <code>List</code> 区别？</strong><br>A：数组固定长度、基本类型有专用数组、性能高；List 可变、泛型、业务常用。</p>
+<p><strong>Q15：<code>zip</code> 和 <code>unzip</code> 作用？</strong><br>A：<code>zip</code> 合并两个集合为 Pair 列表；<code>unzip</code> 拆分 Pair 列表为两个列表。</p>
+<hr>
+<h2 id="十、速记口诀"><a href="#十、速记口诀" class="headerlink" title="十、速记口诀"></a>十、速记口诀</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>口诀</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>集合层次</td>
+<td>List&#x2F;Set&#x2F;Map 只读，Mutable 可变</td>
+</tr>
+<tr>
+<td>创建</td>
+<td>listOf 只读，mutableListOf 可变</td>
+</tr>
+<tr>
+<td>与 Java</td>
+<td>编译后都是 Java 接口，只读仅编译期</td>
+</tr>
+<tr>
+<td>Sequence</td>
+<td>惰性求值，无中间集合，大数据量</td>
+</tr>
+<tr>
+<td>fold&#x2F;reduce</td>
+<td>fold 有初始，reduce 无初始</td>
+</tr>
+<tr>
+<td>associate</td>
+<td>associate 自定义，associateBy 指定 key</td>
+</tr>
+<tr>
+<td>groupBy</td>
+<td>分组返回 Map&lt;K, List<T>&gt;</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>标准集合非线程安全，用并发集合</td>
+</tr>
+</tbody></table>
+]]></content>
+      <categories>
+        <category>tech</category>
+      </categories>
+      <tags>
+        <tag>Kotlin</tag>
       </tags>
   </entry>
 </search>

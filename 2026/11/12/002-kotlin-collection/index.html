@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"konokol.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"language":false,"highlight_theme":"night"},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Kotlin 集合是面试高频模块，核心知识点包括：只读与可变、集合层次结构、与 Java 集合的关系、常用操作符、Sequence 惰性求值、性能与线程安全。  一、集合层次结构Kotlin 集合分两大类：只读集合和可变集合。 12345678Iterable├── Collection│   ├── List│   │   └── MutableList│   └── Set│       └─">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin 中的集合">
+<meta property="og:url" content="http://konokol.github.io/2026/11/12/002-kotlin-collection/index.html">
+<meta property="og:site_name" content="立秋">
+<meta property="og:description" content="Kotlin 集合是面试高频模块，核心知识点包括：只读与可变、集合层次结构、与 Java 集合的关系、常用操作符、Sequence 惰性求值、性能与线程安全。  一、集合层次结构Kotlin 集合分两大类：只读集合和可变集合。 12345678Iterable├── Collection│   ├── List│   │   └── MutableList│   └── Set│       └─">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-11-12T03:16:44.000Z">
+<meta property="article:modified_time" content="2026-11-12T03:21:19.000Z">
+<meta property="article:author" content="Ivan J. Lee">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://konokol.github.io/2026/11/12/002-kotlin-collection/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://konokol.github.io/2026/11/12/002-kotlin-collection/","path":"2026/11/12/002-kotlin-collection/","title":"Kotlin 中的集合"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kotlin 中的集合 | 立秋</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-89Q9Z46W78"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-89Q9Z46W78","only_pageview":false,"measure_protocol_api_secret":null,"enable":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">立秋</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">konokol | Beyond Pixels</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-schedule"><a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%9B%86%E5%90%88%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">一、集合层次结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%88%9B%E5%BB%BA%E9%9B%86%E5%90%88"><span class="nav-number">2.</span> <span class="nav-text">二、创建集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%8F%AA%E8%AF%BB-vs-%E5%8F%AF%E5%8F%98"><span class="nav-number">3.</span> <span class="nav-text">三、只读 vs 可变</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E9%9B%86%E5%90%88%E4%B8%8E-Java-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">4.</span> <span class="nav-text">四、集合与 Java 的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="nav-number">5.</span> <span class="nav-text">五、常用操作符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%BD%AC%E6%8D%A2"><span class="nav-number">5.1.</span> <span class="nav-text">1. 转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%81%9A%E5%90%88"><span class="nav-number">5.2.</span> <span class="nav-text">2. 聚合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%8E%92%E5%BA%8F"><span class="nav-number">5.3.</span> <span class="nav-text">3. 排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%88%86%E7%BB%84%E4%B8%8E%E5%85%B3%E8%81%94"><span class="nav-number">5.4.</span> <span class="nav-text">4. 分组与关联</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%9F%A5%E6%89%BE%E4%B8%8E%E5%88%A4%E6%96%AD"><span class="nav-number">5.5.</span> <span class="nav-text">5. 查找与判断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E5%8F%96%E5%AD%90%E9%9B%86"><span class="nav-number">5.6.</span> <span class="nav-text">6. 取子集</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81Sequence-%E6%83%B0%E6%80%A7%E6%B1%82%E5%80%BC"><span class="nav-number">6.</span> <span class="nav-text">六、Sequence 惰性求值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8C%BA%E5%88%AB"><span class="nav-number">6.1.</span> <span class="nav-text">1. 区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%A4%BA%E4%BE%8B"><span class="nav-number">6.2.</span> <span class="nav-text">2. 示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8-Sequence"><span class="nav-number">6.3.</span> <span class="nav-text">3. 什么时候用 Sequence</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E9%9B%86%E5%90%88%E4%B8%8E%E6%95%B0%E7%BB%84"><span class="nav-number">7.</span> <span class="nav-text">七、集合与数组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E9%9B%86%E5%90%88%E4%B8%8E%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="nav-number">8.</span> <span class="nav-text">八、集合与线程安全</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98%E4%B8%8E%E7%AD%94%E6%A1%88"><span class="nav-number">9.</span> <span class="nav-text">九、常见面试题与答案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E9%80%9F%E8%AE%B0%E5%8F%A3%E8%AF%80"><span class="nav-number">10.</span> <span class="nav-text">十、速记口诀</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ivan J. Lee"
+      src="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+  <p class="site-author-name" itemprop="name">Ivan J. Lee</p>
+  <div class="site-description" itemprop="description">Love every moment of life, no matter it's good or not.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/konokol" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;konokol" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:lijundut@foxmail.com" title="E-Mail → mailto:lijundut@foxmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/ivanjlee" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;ivanjlee" rel="noopener me" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://konokol.github.io/2026/11/12/002-kotlin-collection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/12691827?s=400&u=3f9fb8fcf809099f9c8c134d1cba909f29942864&v=4">
+      <meta itemprop="name" content="Ivan J. Lee">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="立秋">
+      <meta itemprop="description" content="Love every moment of life, no matter it's good or not.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kotlin 中的集合 | 立秋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kotlin 中的集合
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-11-12 11:16:44 / 修改时间：11:21:19" itemprop="dateCreated datePublished" datetime="2026-11-12T11:16:44+08:00">2026-11-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/tech/" itemprop="url" rel="index"><span itemprop="name">tech</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Kotlin 集合是面试高频模块，核心知识点包括：<strong>只读与可变、集合层次结构、与 Java 集合的关系、常用操作符、Sequence 惰性求值、性能与线程安全</strong>。</p>
+<hr>
+<h2 id="一、集合层次结构"><a href="#一、集合层次结构" class="headerlink" title="一、集合层次结构"></a>一、集合层次结构</h2><p>Kotlin 集合分两大类：<strong>只读集合</strong>和<strong>可变集合</strong>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Iterable</span><br><span class="line">├── Collection</span><br><span class="line">│   ├── List</span><br><span class="line">│   │   └── MutableList</span><br><span class="line">│   └── Set</span><br><span class="line">│       └── MutableSet</span><br><span class="line">└── Map（独立，不继承 Collection）</span><br><span class="line">    └── MutableMap</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点</strong>：</p>
+<ul>
+<li><code>List</code>、<code>Set</code>、<code>Map</code> 是<strong>只读接口</strong>，只有读方法。</li>
+<li><code>MutableList</code>、<code>MutableSet</code>、<code>MutableMap</code> 继承只读接口，增加写方法。</li>
+<li>只读<strong>不等于不可变</strong>：底层可能被 Java 代码修改，只是 Kotlin 编译器不允许你直接写。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> list: List&lt;<span class="built_in">Int</span>&gt; = mutableListOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="comment">// list.add(4) // 编译错误</span></span><br><span class="line">(list <span class="keyword">as</span> MutableList).add(<span class="number">4</span>) <span class="comment">// 运行时可绕过，但不推荐</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、创建集合"><a href="#二、创建集合" class="headerlink" title="二、创建集合"></a>二、创建集合</h2><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>listOf</code></td>
+<td><code>listOf(1, 2, 3)</code></td>
+<td>只读 List</td>
+</tr>
+<tr>
+<td><code>mutableListOf</code></td>
+<td><code>mutableListOf(1, 2, 3)</code></td>
+<td>可变 List</td>
+</tr>
+<tr>
+<td><code>setOf</code></td>
+<td><code>setOf(1, 2, 3)</code></td>
+<td>只读 Set</td>
+</tr>
+<tr>
+<td><code>mutableSetOf</code></td>
+<td><code>mutableSetOf(1, 2)</code></td>
+<td>可变 Set</td>
+</tr>
+<tr>
+<td><code>mapOf</code></td>
+<td><code>mapOf(&quot;a&quot; to 1)</code></td>
+<td>只读 Map</td>
+</tr>
+<tr>
+<td><code>mutableMapOf</code></td>
+<td><code>mutableMapOf(&quot;a&quot; to 1)</code></td>
+<td>可变 Map</td>
+</tr>
+<tr>
+<td><code>arrayListOf</code></td>
+<td><code>arrayListOf(1, 2)</code></td>
+<td>可变 ArrayList</td>
+</tr>
+<tr>
+<td><code>hashSetOf</code></td>
+<td><code>hashSetOf(1, 2)</code></td>
+<td>可变 HashSet</td>
+</tr>
+<tr>
+<td><code>hashMapOf</code></td>
+<td><code>hashMapOf(&quot;a&quot; to 1)</code></td>
+<td>可变 HashMap</td>
+</tr>
+<tr>
+<td><code>emptyList()</code></td>
+<td><code>emptyList&lt;Int&gt;()</code></td>
+<td>空只读 List</td>
+</tr>
+<tr>
+<td><code>listOfNotNull</code></td>
+<td><code>listOfNotNull(a, b)</code></td>
+<td>过滤 null</td>
+</tr>
+</tbody></table>
+<p><strong>加分点</strong>：</p>
+<ul>
+<li><code>listOf()</code> 返回 <code>ArraysUtilJVM$ArrayList</code> 或 <code>SingletonList</code>，不可变。</li>
+<li><code>mutableListOf()</code> 返回 <code>ArrayList</code>。</li>
+<li><code>mapOf()</code> 返回 <code>LinkedHashMap</code>。</li>
+</ul>
+<hr>
+<h2 id="三、只读-vs-可变"><a href="#三、只读-vs-可变" class="headerlink" title="三、只读 vs 可变"></a>三、只读 vs 可变</h2><table>
+<thead>
+<tr>
+<th>操作</th>
+<th><code>List</code></th>
+<th><code>MutableList</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读取</td>
+<td><code>get</code>、<code>size</code>、<code>forEach</code></td>
+<td>同左</td>
+</tr>
+<tr>
+<td>添加</td>
+<td>❌</td>
+<td><code>add</code>、<code>addAll</code></td>
+</tr>
+<tr>
+<td>删除</td>
+<td>❌</td>
+<td><code>remove</code>、<code>clear</code></td>
+</tr>
+<tr>
+<td>修改</td>
+<td>❌</td>
+<td><code>set</code></td>
+</tr>
+<tr>
+<td>迭代</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p>只读集合真的不可变吗？  </p>
+<p>不。Kotlin 只读接口只是编译期限制，底层可能是可变集合，Java 代码可修改。需要真正不可变用 <code>Collections.unmodifiableList</code> 或第三方库（如 Guava ImmutableList）。</p>
+<hr>
+<h2 id="四、集合与-Java-的关系"><a href="#四、集合与-Java-的关系" class="headerlink" title="四、集合与 Java 的关系"></a>四、集合与 Java 的关系</h2><p>Kotlin 集合编译后映射为 Java 集合：</p>
+<table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>List</code></td>
+<td><code>java.util.List</code></td>
+</tr>
+<tr>
+<td><code>MutableList</code></td>
+<td><code>java.util.List</code></td>
+</tr>
+<tr>
+<td><code>Set</code></td>
+<td><code>java.util.Set</code></td>
+</tr>
+<tr>
+<td><code>Map</code></td>
+<td><code>java.util.Map</code></td>
+</tr>
+<tr>
+<td><code>Collection</code></td>
+<td><code>java.util.Collection</code></td>
+</tr>
+</tbody></table>
+<p><strong>关键点</strong>：</p>
+<ul>
+<li>Kotlin 只读集合和可变集合编译后都是 Java 可变接口，区别只在编译期。</li>
+<li>Java 调用 Kotlin 返回的 <code>List</code> 时，可以修改，Kotlin 不保证不可变。</li>
+<li>Java 的 <code>List</code> 在 Kotlin 中视为平台类型 <code>(Mutable)List&lt;T!&gt;!</code>，可读可写。</li>
+</ul>
+<hr>
+<h2 id="五、常用操作符"><a href="#五、常用操作符" class="headerlink" title="五、常用操作符"></a>五、常用操作符</h2><h3 id="1-转换"><a href="#1-转换" class="headerlink" title="1. 转换"></a>1. 转换</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>map</code></td>
+<td>元素转换</td>
+<td><code>list.map { it * 2 }</code></td>
+</tr>
+<tr>
+<td><code>flatMap</code></td>
+<td>转换并展平</td>
+<td><code>list.flatMap { listOf(it, it) }</code></td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>过滤</td>
+<td><code>list.filter { it &gt; 0 }</code></td>
+</tr>
+<tr>
+<td><code>filterNot</code></td>
+<td>反向过滤</td>
+<td><code>list.filterNot { it &gt; 0 }</code></td>
+</tr>
+<tr>
+<td><code>mapNotNull</code></td>
+<td>转换并过滤 null</td>
+<td><code>list.mapNotNull { it.toIntOrNull() }</code></td>
+</tr>
+<tr>
+<td><code>flatten</code></td>
+<td>展平嵌套集合</td>
+<td><code>listOf(listOf(1), listOf(2)).flatten()</code></td>
+</tr>
+<tr>
+<td><code>zip</code></td>
+<td>合并两个集合</td>
+<td><code>listA.zip(listB) { a, b -&gt; a + b }</code></td>
+</tr>
+<tr>
+<td><code>unzip</code></td>
+<td>拆分 Pair 集合</td>
+<td><code>pairs.unzip()</code></td>
+</tr>
+</tbody></table>
+<h3 id="2-聚合"><a href="#2-聚合" class="headerlink" title="2. 聚合"></a>2. 聚合</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fold</code></td>
+<td>带初始值累积</td>
+<td><code>list.fold(0) { acc, i -&gt; acc + i }</code></td>
+</tr>
+<tr>
+<td><code>reduce</code></td>
+<td>无初始值累积</td>
+<td>空集合抛异常</td>
+</tr>
+<tr>
+<td><code>sum</code></td>
+<td>求和</td>
+<td>数字集合</td>
+</tr>
+<tr>
+<td><code>average</code></td>
+<td>平均值</td>
+<td>数字集合</td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td>计数</td>
+<td>可带条件</td>
+</tr>
+<tr>
+<td><code>maxOrNull</code> &#x2F; <code>minOrNull</code></td>
+<td>最大&#x2F;最小</td>
+<td>空集合返回 null</td>
+</tr>
+<tr>
+<td><code>maxByOrNull</code> &#x2F; <code>minByOrNull</code></td>
+<td>按条件最大&#x2F;最小</td>
+<td>空集合返回 null</td>
+</tr>
+</tbody></table>
+<h3 id="3-排序"><a href="#3-排序" class="headerlink" title="3. 排序"></a>3. 排序</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sorted</code></td>
+<td>自然排序</td>
+</tr>
+<tr>
+<td><code>sortedBy</code></td>
+<td>按选择器排序</td>
+</tr>
+<tr>
+<td><code>sortedDescending</code></td>
+<td>降序</td>
+</tr>
+<tr>
+<td><code>sortedByDescending</code></td>
+<td>按选择器降序</td>
+</tr>
+<tr>
+<td><code>sortedWith</code></td>
+<td>自定义 Comparator</td>
+</tr>
+</tbody></table>
+<h3 id="4-分组与关联"><a href="#4-分组与关联" class="headerlink" title="4. 分组与关联"></a>4. 分组与关联</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+<th>返回</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>groupBy</code></td>
+<td>按 key 分组</td>
+<td><code>Map&lt;K, List&lt;T&gt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>associate</code></td>
+<td>自定义键值对</td>
+<td><code>Map&lt;K, V&gt;</code></td>
+</tr>
+<tr>
+<td><code>associateBy</code></td>
+<td>指定 key，value 是元素</td>
+<td><code>Map&lt;K, T&gt;</code></td>
+</tr>
+<tr>
+<td><code>associateWith</code></td>
+<td>指定 value，key 是元素</td>
+<td><code>Map&lt;T, V&gt;</code></td>
+</tr>
+<tr>
+<td><code>partition</code></td>
+<td>按条件分两组</td>
+<td><code>Pair&lt;List&lt;T&gt;, List&lt;T&gt;&gt;</code></td>
+</tr>
+</tbody></table>
+<h3 id="5-查找与判断"><a href="#5-查找与判断" class="headerlink" title="5. 查找与判断"></a>5. 查找与判断</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>find</code> &#x2F; <code>firstOrNull</code></td>
+<td>找第一个匹配</td>
+</tr>
+<tr>
+<td><code>any</code></td>
+<td>是否有匹配</td>
+</tr>
+<tr>
+<td><code>all</code></td>
+<td>是否全部匹配</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>是否无匹配</td>
+</tr>
+<tr>
+<td><code>contains</code></td>
+<td>是否包含</td>
+</tr>
+<tr>
+<td><code>isEmpty</code> &#x2F; <code>isNotEmpty</code></td>
+<td>是否为空</td>
+</tr>
+</tbody></table>
+<h3 id="6-取子集"><a href="#6-取子集" class="headerlink" title="6. 取子集"></a>6. 取子集</h3><table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>take(n)</code></td>
+<td>取前 n 个</td>
+</tr>
+<tr>
+<td><code>takeLast(n)</code></td>
+<td>取后 n 个</td>
+</tr>
+<tr>
+<td><code>drop(n)</code></td>
+<td>去掉前 n 个</td>
+</tr>
+<tr>
+<td><code>dropLast(n)</code></td>
+<td>去掉后 n 个</td>
+</tr>
+<tr>
+<td><code>slice(range)</code></td>
+<td>取指定范围</td>
+</tr>
+<tr>
+<td><code>distinct</code></td>
+<td>去重</td>
+</tr>
+<tr>
+<td><code>distinctBy</code></td>
+<td>按选择器去重</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、Sequence-惰性求值"><a href="#六、Sequence-惰性求值" class="headerlink" title="六、Sequence 惰性求值"></a>六、Sequence 惰性求值</h2><h3 id="1-区别"><a href="#1-区别" class="headerlink" title="1. 区别"></a>1. 区别</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>Iterable</code></th>
+<th><code>Sequence</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>求值</td>
+<td>立即求值</td>
+<td>惰性求值</td>
+</tr>
+<tr>
+<td>中间操作</td>
+<td>生成新集合</td>
+<td>返回新 Sequence</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>每步生成中间集合</td>
+<td>无中间集合</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>小数据量快</td>
+<td>大数据量、链式多时快</td>
+</tr>
+<tr>
+<td>终端操作</td>
+<td>无</td>
+<td><code>toList</code>、<code>first</code>、<code>count</code> 触发执行</td>
+</tr>
+</tbody></table>
+<h3 id="2-示例"><a href="#2-示例" class="headerlink" title="2. 示例"></a>2. 示例</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Iterable：每步生成新集合</span></span><br><span class="line"><span class="keyword">val</span> result = (<span class="number">1.</span><span class="number">.1_000_000</span>)</span><br><span class="line">    .map &#123; it * <span class="number">2</span> &#125;       <span class="comment">// 生成 100 万列表</span></span><br><span class="line">    .filter &#123; it % <span class="number">3</span> == <span class="number">0</span> &#125; <span class="comment">// 再生成列表</span></span><br><span class="line">    .take(<span class="number">10</span>)             <span class="comment">// 再生成列表</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Sequence：惰性，只计算前 10 个</span></span><br><span class="line"><span class="keyword">val</span> result = (<span class="number">1.</span><span class="number">.1_000_000</span>).asSequence()</span><br><span class="line">    .map &#123; it * <span class="number">2</span> &#125;</span><br><span class="line">    .filter &#123; it % <span class="number">3</span> == <span class="number">0</span> &#125;</span><br><span class="line">    .take(<span class="number">10</span>)</span><br><span class="line">    .toList()             <span class="comment">// 终端操作，触发执行</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-什么时候用-Sequence"><a href="#3-什么时候用-Sequence" class="headerlink" title="3. 什么时候用 Sequence"></a>3. 什么时候用 Sequence</h3><ul>
+<li>大数据量（十万以上）。</li>
+<li>链式操作多。</li>
+<li>只需部分结果（<code>take</code>、<code>first</code>）。</li>
+<li>避免中间集合内存开销。</li>
+</ul>
+<p><strong>加分点</strong>：Sequence 也有开销，小数据量可能比 Iterable 慢；<code>sequence { }</code> 构建器用 <code>yield</code> 发射元素。</p>
+<hr>
+<h2 id="七、集合与数组"><a href="#七、集合与数组" class="headerlink" title="七、集合与数组"></a>七、集合与数组</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>数组</th>
+<th>集合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>长度</td>
+<td>固定</td>
+<td>可变（Mutable）</td>
+</tr>
+<tr>
+<td>元素类型</td>
+<td>基本类型有专用数组（<code>IntArray</code>）</td>
+<td>泛型</td>
+</tr>
+<tr>
+<td>协变</td>
+<td>数组协变（有风险）</td>
+<td>只读集合协变</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>更高</td>
+<td>略低</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>底层、性能敏感</td>
+<td>业务逻辑</td>
+</tr>
+</tbody></table>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> array = intArrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> list = listOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">array[<span class="number">0</span>] = <span class="number">10</span>  <span class="comment">// 可变</span></span><br><span class="line"><span class="comment">// list[0] = 10 // 编译错误</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、集合与线程安全"><a href="#八、集合与线程安全" class="headerlink" title="八、集合与线程安全"></a>八、集合与线程安全</h2><ul>
+<li>Kotlin 标准集合<strong>非线程安全</strong>。</li>
+<li>多线程场景用：<ul>
+<li><code>java.util.concurrent.ConcurrentHashMap</code></li>
+<li><code>CopyOnWriteArrayList</code></li>
+<li><code>Collections.synchronizedList</code></li>
+</ul>
+</li>
+<li>协程中用 <code>Mutex</code> 保护共享集合，或用 <code>Channel</code>、<code>Flow</code> 传递数据。</li>
+</ul>
+<hr>
+<h2 id="九、常见面试题与答案"><a href="#九、常见面试题与答案" class="headerlink" title="九、常见面试题与答案"></a>九、常见面试题与答案</h2><p><strong>Q1：Kotlin 只读集合真的不可变吗？</strong><br>A：不。只读只是编译期接口限制，底层可能是可变集合，Java 可修改。真正不可变用 <code>Collections.unmodifiableList</code> 或 Guava。</p>
+<p><strong>Q2：<code>List</code> 和 <code>MutableList</code> 编译后有什么区别？</strong><br>A：都映射为 Java <code>List</code>，区别只在编译期。Java 调用 Kotlin 返回的 <code>List</code> 仍可修改。</p>
+<p><strong>Q3：<code>listOf</code> 和 <code>mutableListOf</code> 区别？</strong><br>A：<code>listOf</code> 返回只读接口，<code>mutableListOf</code> 返回可变 <code>ArrayList</code>。</p>
+<p><strong>Q4：<code>Sequence</code> 和 <code>Iterable</code> 区别？</strong><br>A：<code>Iterable</code> 立即求值生成中间集合；<code>Sequence</code> 惰性逐元素，无中间集合，适合大数据量。</p>
+<p><strong>Q5：<code>fold</code> 和 <code>reduce</code> 区别？</strong><br>A：<code>fold</code> 有初始值；<code>reduce</code> 无初始值，空集合抛异常。</p>
+<p><strong>Q6：<code>associate</code> 和 <code>associateBy</code> 区别？</strong><br>A：<code>associate</code> 自定义键值对；<code>associateBy</code> 指定 key，value 是元素本身。</p>
+<p><strong>Q7：<code>map</code> 和 <code>flatMap</code> 区别？</strong><br>A：<code>map</code> 一对一转换；<code>flatMap</code> 转换后展平。</p>
+<p><strong>Q8：<code>groupBy</code> 返回什么？</strong><br>A：<code>Map&lt;K, List&lt;T&gt;&gt;</code>，按 key 分组。</p>
+<p><strong>Q9：Kotlin 集合和 Java 集合如何互操作？</strong><br>A：Kotlin 只读&#x2F;可变集合编译后都是 Java 集合接口；Java 的 <code>List</code> 在 Kotlin 中是平台类型，可读可写。</p>
+<p><strong>Q10：如何选择 <code>List</code>、<code>Set</code>、<code>Map</code>？</strong><br>A：有序可重复用 <code>List</code>；去重用 <code>Set</code>；键值对用 <code>Map</code>。只读优先，需要修改用 <code>Mutable</code>。</p>
+<p><strong>Q11：<code>take</code> 和 <code>drop</code> 区别？</strong><br>A：<code>take(n)</code> 取前 n 个；<code>drop(n)</code> 去掉前 n 个。</p>
+<p><strong>Q12：<code>distinct</code> 和 <code>distinctBy</code> 区别？</strong><br>A：<code>distinct</code> 按元素去重；<code>distinctBy</code> 按选择器结果去重。</p>
+<p><strong>Q13：Kotlin 集合为什么分只读和可变？</strong><br>A：编译期表达意图，减少误修改；与 Java 互操作时只读接口更安全。</p>
+<p><strong>Q14：<code>Array</code> 和 <code>List</code> 区别？</strong><br>A：数组固定长度、基本类型有专用数组、性能高；List 可变、泛型、业务常用。</p>
+<p><strong>Q15：<code>zip</code> 和 <code>unzip</code> 作用？</strong><br>A：<code>zip</code> 合并两个集合为 Pair 列表；<code>unzip</code> 拆分 Pair 列表为两个列表。</p>
+<hr>
+<h2 id="十、速记口诀"><a href="#十、速记口诀" class="headerlink" title="十、速记口诀"></a>十、速记口诀</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>口诀</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>集合层次</td>
+<td>List&#x2F;Set&#x2F;Map 只读，Mutable 可变</td>
+</tr>
+<tr>
+<td>创建</td>
+<td>listOf 只读，mutableListOf 可变</td>
+</tr>
+<tr>
+<td>与 Java</td>
+<td>编译后都是 Java 接口，只读仅编译期</td>
+</tr>
+<tr>
+<td>Sequence</td>
+<td>惰性求值，无中间集合，大数据量</td>
+</tr>
+<tr>
+<td>fold&#x2F;reduce</td>
+<td>fold 有初始，reduce 无初始</td>
+</tr>
+<tr>
+<td>associate</td>
+<td>associate 自定义，associateBy 指定 key</td>
+</tr>
+<tr>
+<td>groupBy</td>
+<td>分组返回 Map&lt;K, List<T>&gt;</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>标准集合非线程安全，用并发集合</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kotlin/" rel="tag"># Kotlin</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/27/002-kotlin-null-safety/" rel="prev" title="Kotlin 空安全">
+                  <i class="fa fa-angle-left"></i> Kotlin 空安全
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2018 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ivan J. Lee All right reserved</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/konokol" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
